@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDT Smart Reports — Panel de Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand':       '#0071ce',
+                        'brand-dark':  '#000b8c',
+                        'sidebar':     '#f5f1f0',
+                        'sidebar-h':   '#ebe7e5',
+                        'ocean':       '#0071ce',
+                        'cream':       '#f9f6f6',
+                    },
+                    fontFamily: {
+                        sans: ['Lato', 'Helvetica', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body { background: #f5f1f0; font-family: 'Lato', Helvetica, Arial, sans-serif; }
+
+        /* ── Sidebar nav item ── */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 13.5px;
+            font-weight: 400;
+            color: #515152;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-item:hover {
+            background: rgba(0,113,206,0.07);
+            color: #0071ce;
+        }
+        .nav-item.active {
+            background: rgba(0,113,206,0.10);
+            color: #0071ce;
+            font-weight: 700;
+        }
+        .nav-item.active svg { color: #0071ce; }
+        .nav-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #c2bbb5;
+            padding: 18px 12px 6px;
+        }
+
+        /* ── Fade-in animation ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeUp 0.25s ease-out both; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
+    </style>
+</head>
+
+<body class="flex h-full">
+
+<!-- ════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════ -->
+<aside class="w-[248px] flex-shrink-0 bg-sidebar flex flex-col h-full">
+
+    <!-- Brand -->
+    <div class="px-5 pt-6 pb-5 border-b border-black/[0.07]">
+        <!-- Logo Turismo de Tenerife -->
+        <div class="mb-4">
+            <img
+                src="https://www.webtenerife.com/-/media/project/webtenerife/common/logos_tenerife/tenerife_logo_degradado_esp.svg"
+                alt="Turismo de Tenerife"
+                class="w-full h-auto"
+                onerror="this.src='https://www.webtenerife.com/etc.clientlibs/webtenerife/clientlibs/publish/resources/img/logo-tenerife.svg'"
+            >
+        </div>
+
+        <!-- Product badge -->
+        <div class="flex items-center gap-2 bg-brand/[0.08] rounded-lg px-3 py-2">
+            <span class="w-2 h-2 rounded-full bg-brand flex-shrink-0"></span>
+            <div>
+                <div class="text-brand text-[11px] font-bold tracking-widest uppercase leading-none">Smart Reports</div>
+                <div class="text-black/40 text-[10px] mt-0.5">Sistema de Presentaciones v1.0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto px-3 py-2">
+
+        <div class="nav-section-label">Panel</div>
+
+        <button class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard', this)">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            </svg>
+            Dashboard
+        </button>
+
+        <button class="nav-item" id="nav-new-report" onclick="navigate('new-report', this)">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nueva Presentación
+            <span class="ml-auto bg-brand text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none">IA</span>
+        </button>
+
+        <button class="nav-item" id="nav-reports" onclick="navigate('reports', this)">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Presentaciones Generadas
+            <span class="ml-auto text-[11px] bg-black/[0.07] text-black/50 px-2 py-0.5 rounded-full font-semibold">24</span>
+        </button>
+
+        <div class="nav-section-label">Contenidos</div>
+
+        <button class="nav-item" id="nav-catalog" onclick="navigate('catalog', this)">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            Catálogo de Módulos
+        </button>
+
+        <div class="nav-section-label">Analytics</div>
+
+        <button class="nav-item" id="nav-analytics" onclick="navigate('analytics', this)">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Métricas e Impacto
+        </button>
+
+        <div class="nav-section-label">Configuración</div>
+
+        <button class="nav-item" id="nav-settings" onclick="navigate('settings', this)">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Configuración
+        </button>
+
+    </nav>
+
+    <!-- User card -->
+    <div class="px-3 pb-4 pt-3 border-t border-black/[0.07]">
+        <div class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-black/[0.05] transition-colors cursor-pointer">
+            <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xs flex-shrink-0">ML</div>
+            <div class="flex-1 min-w-0">
+                <div class="text-gray-900 text-xs font-semibold truncate">María López</div>
+                <div class="text-black/40 text-[11px] truncate">Gestora de Mercados</div>
+            </div>
+            <svg class="w-3.5 h-3.5 text-black/25 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+        </div>
+    </div>
+
+</aside>
+
+
+<!-- ════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════ -->
+<div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Top bar -->
+    <header class="flex-shrink-0 bg-white border-b border-gray-200/80 px-8 h-[60px] flex items-center justify-between">
+
+        <!-- Breadcrumb + title -->
+        <div class="flex items-center gap-3">
+            <div>
+                <h1 id="page-title" class="text-gray-900 font-semibold text-[15px] leading-none">Dashboard</h1>
+                <p id="page-subtitle" class="text-[#515152] text-[12px] mt-1 leading-none">Bienvenida, María. Tienes 3 presentaciones pendientes de seguimiento.</p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2.5">
+            <!-- Date chip -->
+            <div class="text-[11px] text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full font-medium">
+                Sem. 14 &mdash; 8 Abr 2026
+            </div>
+
+            <!-- Notifications -->
+            <button class="relative w-8 h-8 rounded-lg flex items-center justify-center text-[#515152] hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-brand"></span>
+            </button>
+
+            <!-- CTA -->
+            <button onclick="navigate('new-report', document.getElementById('nav-new-report'))"
+                    class="bg-brand hover:bg-brand-dark text-white px-5 py-2 rounded-full text-[12px] font-bold uppercase tracking-wide flex items-center gap-1.5 transition-colors shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nueva Presentación
+            </button>
+        </div>
+    </header>
+
+    <!-- View container -->
+    <main class="flex-1 overflow-y-auto" id="view-container">
+
+        <!-- ── DASHBOARD ── -->
+        <section id="view-dashboard" class="p-8 fade-in">
+
+            <!-- Stat cards -->
+            <div class="grid grid-cols-4 gap-5 mb-7">
+
+                <div class="rounded-lg p-5 text-white" style="background: linear-gradient(135deg,#0071ce,#005aa8);">
+                    <div class="text-white/60 text-[10px] font-bold tracking-widest uppercase mb-3">Presentaciones Generadas</div>
+                    <div class="text-4xl font-black leading-none mb-2">124</div>
+                    <div class="flex items-center gap-1 text-white/80 text-xs font-bold">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                        +18% este mes
+                    </div>
+                </div>
+
+                <div class="rounded-lg p-5 text-white" style="background: linear-gradient(135deg,#000b8c,#00077a);">
+                    <div class="text-white/60 text-[10px] font-bold tracking-widest uppercase mb-3">Aperturas Totales</div>
+                    <div class="text-4xl font-black leading-none mb-2">847</div>
+                    <div class="flex items-center gap-1 text-white/80 text-xs font-bold">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                        68% tasa de apertura
+                    </div>
+                </div>
+
+                <div class="rounded-lg p-5 text-white" style="background: linear-gradient(135deg,#0060b0,#004d8c);">
+                    <div class="text-white/60 text-[10px] font-bold tracking-widest uppercase mb-3">Mercados Activos</div>
+                    <div class="text-4xl font-black leading-none mb-2">12</div>
+                    <div class="text-white/80 text-xs font-bold">DE · UK · FR · NL · IT · SE</div>
+                </div>
+
+                <div class="rounded-lg p-5 text-white" style="background: linear-gradient(135deg,#003d80,#001f4d);">
+                    <div class="text-white/60 text-[10px] font-bold tracking-widest uppercase mb-3">Idiomas Generados</div>
+                    <div class="text-4xl font-black leading-none mb-2">6</div>
+                    <div class="text-white/80 text-xs font-bold">ES · EN · DE · FR · IT · NL</div>
+                </div>
+
+            </div>
+
+            <!-- Bottom grid: recent reports (2/3) + sidebar (1/3) -->
+            <div class="grid grid-cols-3 gap-5">
+
+                <!-- Recent reports table -->
+                <div class="col-span-2 bg-white rounded-lg border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <div>
+                            <h2 class="font-semibold text-gray-900 text-[14px]">Presentaciones Recientes</h2>
+                            <p class="text-[#515152] text-[11px] mt-0.5">Últimas acciones del equipo</p>
+                        </div>
+                        <button onclick="navigate('reports', document.getElementById('nav-reports'))"
+                                class="text-brand text-[12px] font-semibold hover:underline">
+                            Ver todos →
+                        </button>
+                    </div>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50/70">
+                                <th class="text-left px-6 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Receptor</th>
+                                <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Mercado</th>
+                                <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Idioma</th>
+                                <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Aperturas</th>
+                                <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-[10px] flex-shrink-0">TM</div>
+                                        <div>
+                                            <div class="text-[13px] font-semibold text-gray-900">Thomas Mueller</div>
+                                            <div class="text-[11px] text-[#515152]">Neckermann Reisen</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-[13px] text-gray-600">🇩🇪 Alemania</td>
+                                <td class="px-4 py-3.5"><span class="text-[10px] font-bold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">DE</span></td>
+                                <td class="px-4 py-3.5 text-[13px] font-semibold text-gray-800">4</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">● Abierto</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-[10px] flex-shrink-0">SB</div>
+                                        <div>
+                                            <div class="text-[13px] font-semibold text-gray-900">Sophie Beaumont</div>
+                                            <div class="text-[11px] text-[#515152]">Club Med France</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-[13px] text-gray-600">🇫🇷 Francia</td>
+                                <td class="px-4 py-3.5"><span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">FR</span></td>
+                                <td class="px-4 py-3.5 text-[13px] font-semibold text-gray-800">7</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">● Abierto</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-[10px] flex-shrink-0">JW</div>
+                                        <div>
+                                            <div class="text-[13px] font-semibold text-gray-900">James Wilson</div>
+                                            <div class="text-[11px] text-[#515152]">TUI Group UK</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-[13px] text-gray-600">🇬🇧 Reino Unido</td>
+                                <td class="px-4 py-3.5"><span class="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">EN</span></td>
+                                <td class="px-4 py-3.5 text-[13px] font-semibold text-gray-800">2</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] font-medium text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full">● Pendiente</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-[10px] flex-shrink-0">LV</div>
+                                        <div>
+                                            <div class="text-[13px] font-semibold text-gray-900">Lars Vandenberg</div>
+                                            <div class="text-[11px] text-[#515152]">D-reizen Benelux</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-[13px] text-gray-600">🇳🇱 Países Bajos</td>
+                                <td class="px-4 py-3.5"><span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">NL</span></td>
+                                <td class="px-4 py-3.5 text-[13px] font-semibold text-gray-800">0</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">● Sin abrir</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-full bg-brand/20 flex items-center justify-center text-brand font-bold text-[10px] flex-shrink-0">MR</div>
+                                        <div>
+                                            <div class="text-[13px] font-semibold text-gray-900">Marco Rossi</div>
+                                            <div class="text-[11px] text-[#515152]">Alpitour World</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-[13px] text-gray-600">🇮🇹 Italia</td>
+                                <td class="px-4 py-3.5"><span class="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">IT</span></td>
+                                <td class="px-4 py-3.5 text-[13px] font-semibold text-gray-800">11</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">● Abierto</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right column -->
+                <div class="flex flex-col gap-5">
+
+                    <!-- Top modules -->
+                    <div class="bg-white rounded-lg border border-gray-100 p-5 flex-1">
+                        <h2 class="font-semibold text-gray-900 text-[14px] mb-4">Módulos más usados</h2>
+                        <div class="space-y-3.5">
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg w-6 text-center">🌿</span>
+                                <div class="flex-1">
+                                    <div class="flex justify-between text-[11px] mb-1">
+                                        <span class="font-semibold text-gray-700">Naturaleza</span>
+                                        <span class="text-[#515152]">87%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full bg-emerald-500" style="width:87%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg w-6 text-center">☀️</span>
+                                <div class="flex-1">
+                                    <div class="flex justify-between text-[11px] mb-1">
+                                        <span class="font-semibold text-gray-700">Clima</span>
+                                        <span class="text-[#515152]">79%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full bg-yellow-400" style="width:79%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg w-6 text-center">🍽️</span>
+                                <div class="flex-1">
+                                    <div class="flex justify-between text-[11px] mb-1">
+                                        <span class="font-semibold text-gray-700">Gastronomía</span>
+                                        <span class="text-[#515152]">72%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full bg-brand" style="width:72%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg w-6 text-center">🏄</span>
+                                <div class="flex-1">
+                                    <div class="flex justify-between text-[11px] mb-1">
+                                        <span class="font-semibold text-gray-700">Deportes</span>
+                                        <span class="text-[#515152]">61%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full bg-ocean" style="width:61%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg w-6 text-center">🌱</span>
+                                <div class="flex-1">
+                                    <div class="flex justify-between text-[11px] mb-1">
+                                        <span class="font-semibold text-gray-700">Sostenibilidad</span>
+                                        <span class="text-[#515152]">54%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full bg-teal-500" style="width:54%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Promo card -->
+                    <div class="rounded-lg p-5 text-white" style="background: linear-gradient(135deg,#0d1b2a 0%,#0077b6 100%);">
+                        <div class="text-2xl mb-2">🗓️</div>
+                        <div class="font-bold text-[13px] mb-1">WTM Berlin — Nov 2026</div>
+                        <div class="text-white/60 text-[11px] leading-relaxed mb-3">
+                            Prepara tu banco de presentaciones para la feria. Quedan 32 días.
+                        </div>
+                        <button onclick="navigate('new-report', document.getElementById('nav-new-report'))"
+                                class="text-[11px] font-bold text-brand hover:text-white transition-colors">
+                            Preparar materiales →
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ── NEW REPORT ── -->
+        <section id="view-new-report" class="p-8 fade-in hidden">
+
+            <!-- Step indicator -->
+            <div class="flex items-center gap-3 mb-7">
+                <div class="flex items-center gap-2" id="si-1">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold bg-brand text-white" id="si-1-num">1</div>
+                    <span class="text-[13px] font-semibold text-gray-900" id="si-1-lbl">Seleccionar módulos</span>
+                </div>
+                <div class="flex-shrink-0 w-10 h-px bg-gray-200"></div>
+                <div class="flex items-center gap-2" id="si-2">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold bg-gray-200 text-[#515152]" id="si-2-num">2</div>
+                    <span class="text-[13px] font-medium text-[#515152]" id="si-2-lbl">Personalizar presentación</span>
+                </div>
+                <div class="flex-shrink-0 w-10 h-px bg-gray-200"></div>
+                <div class="flex items-center gap-2" id="si-3">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold bg-gray-200 text-[#515152]" id="si-3-num">3</div>
+                    <span class="text-[13px] font-medium text-[#515152]" id="si-3-lbl">Generar y compartir</span>
+                </div>
+            </div>
+
+            <!-- ── STEP 1: Module selection ── -->
+            <div id="step-1">
+                <div class="bg-white rounded-lg border border-gray-100 p-6 mb-5">
+                    <h2 class="text-gray-900 font-semibold text-[15px] mb-1">Selecciona los módulos de contenido</h2>
+                    <p class="text-[#515152] text-[13px] mb-6">Elige los temas relevantes para el perfil de tu receptor. Puedes combinar varios módulos.</p>
+
+                    <div class="grid grid-cols-5 gap-3" id="module-grid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <p class="text-[13px] text-gray-500">
+                        <span id="sel-count" class="font-bold text-gray-800">0</span> módulos seleccionados
+                    </p>
+                    <button id="btn-step1-next" onclick="goToStep(2)"
+                            class="flex items-center gap-2 bg-brand hover:bg-brand-dark text-white px-6 py-2 rounded-full text-[12px] font-bold uppercase tracking-wide transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            disabled>
+                        Siguiente
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── STEP 2: Personalización ── -->
+            <div id="step-2" class="hidden">
+                <div class="grid grid-cols-5 gap-6">
+                    <!-- Left: form (3 cols) -->
+                    <div class="col-span-3 bg-white rounded-lg border border-gray-100 p-6">
+                        <h2 class="font-semibold text-gray-900 text-[15px] mb-1">Personaliza la presentación</h2>
+                        <p class="text-[#515152] text-[13px] mb-6">Añade los datos del receptor y elige el idioma de entrega.</p>
+
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del receptor *</label>
+                                    <input id="inp-name" type="text" placeholder="ej. Thomas Mueller"
+                                           oninput="recipientName=this.value;renderStep2Summary()"
+                                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Empresa / Organización *</label>
+                                    <input id="inp-org" type="text" placeholder="ej. Neckermann Reisen"
+                                           oninput="recipientOrg=this.value;renderStep2Summary()"
+                                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Mercado / País</label>
+                                <select id="inp-market" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors bg-white">
+                                    <option value="de">🇩🇪 Alemania</option>
+                                    <option value="gb">🇬🇧 Reino Unido</option>
+                                    <option value="fr">🇫🇷 Francia</option>
+                                    <option value="nl">🇳🇱 Países Bajos</option>
+                                    <option value="it">🇮🇹 Italia</option>
+                                    <option value="es">🇪🇸 España</option>
+                                    <option value="se">🇸🇪 Suecia</option>
+                                    <option value="no">🇳🇴 Noruega</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Idioma de la presentación</label>
+                                <div class="flex gap-2 flex-wrap" id="lang-btns">
+                                    <!-- rendered by JS -->
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nota de cierre <span class="font-normal normal-case text-[#515152]">(opcional)</span></label>
+                                <textarea id="inp-closing" rows="3" placeholder="Añade un mensaje personalizado de cierre para el receptor..."
+                                          oninput="closingNote=this.value"
+                                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: summary (2 cols) -->
+                    <div class="col-span-2 flex flex-col gap-4">
+                        <!-- Selected modules -->
+                        <div class="bg-white rounded-lg border border-gray-100 p-5 flex-1">
+                            <h3 class="font-semibold text-gray-800 text-[13px] mb-3">Módulos seleccionados</h3>
+                            <div id="step2-chips" class="flex flex-wrap gap-2 mb-4">
+                                <!-- rendered by renderStep2Summary() -->
+                            </div>
+                            <div class="border-t border-gray-100 pt-4 space-y-2">
+                                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Esta presentación incluirá</p>
+                                <div class="flex items-center gap-2 text-[12px] text-gray-600"><span class="w-4 h-4 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[9px]">✓</span>Portada personalizada con logotipo TDT</div>
+                                <div class="flex items-center gap-2 text-[12px] text-gray-600"><span class="w-4 h-4 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[9px]">✓</span>Secciones temáticas con argumentario comercial</div>
+                                <div class="flex items-center gap-2 text-[12px] text-gray-600"><span class="w-4 h-4 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[9px]">✓</span>Contenido traducido al idioma seleccionado</div>
+                                <div class="flex items-center gap-2 text-[12px] text-gray-600"><span class="w-4 h-4 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[9px]">✓</span>Datos de contacto y call-to-action de cierre</div>
+                                <div class="flex items-center gap-2 text-[12px] text-gray-600"><span class="w-4 h-4 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[9px]">✓</span>URL pública + exportación PDF</div>
+                            </div>
+                        </div>
+
+                        <!-- Recipient preview -->
+                        <div class="rounded-lg p-4" style="background:linear-gradient(135deg,#000b8c,#0071ce);" id="step2-recipient-card">
+                            <p class="text-white/50 text-[10px] font-bold uppercase tracking-wider mb-2">Vista previa de portada</p>
+                            <div class="text-white font-black text-[15px] leading-snug" id="prev-name">—</div>
+                            <div class="text-white/70 text-[12px] mt-0.5" id="prev-org">Empresa no especificada</div>
+                            <div class="mt-3 inline-flex items-center gap-1 bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full" id="prev-lang">DE · Deutsch</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-5">
+                    <button onclick="goToStep(1)" class="border-2 border-gray-300 text-[#515152] px-5 py-2 rounded-full text-[12px] font-bold uppercase tracking-wide hover:border-brand hover:text-brand transition-colors">← Volver</button>
+                    <button onclick="generateReport()" id="btn-generate"
+                            class="flex items-center gap-2 bg-brand hover:bg-brand-dark text-white px-7 py-2 rounded-full text-[12px] font-bold uppercase tracking-wide transition-colors shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Generar Presentación con IA
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── STEP 3: Generación ── -->
+            <div id="step-3" class="hidden">
+
+                <!-- STATE A: Generating -->
+                <div id="gen-loading" class="bg-white rounded-lg border border-gray-100 p-12 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 mb-6">
+                        <svg id="gen-spinner" class="w-8 h-8 text-brand" style="animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-gray-900 font-bold text-[18px] mb-2">Generando presentación...</h2>
+                    <p id="gen-status-text" class="text-[#515152] text-[13px] mb-6">Inicializando sistema...</p>
+                    <div class="max-w-xs mx-auto bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                        <div id="gen-progress-bar" class="h-full bg-brand rounded-full transition-all duration-300" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <!-- STATE B: Done -->
+                <div id="gen-done" class="hidden">
+                    <div class="grid gap-7" style="grid-template-columns:1fr 380px;align-items:start;">
+
+                        <!-- ── LEFT: Cover preview ── -->
+                        <div class="flex flex-col gap-4">
+
+                            <!-- Cover card -->
+                            <div id="cover-thumb"
+                                 onclick="openReportPreview()"
+                                 class="relative rounded-lg overflow-hidden cursor-pointer group shadow-lg hover:shadow-xl transition-shadow"
+                                 style="background:linear-gradient(160deg,#000b8c 0%,#0071ce 55%,#00a8e8 100%);padding:40px 44px 36px;min-height:480px;display:flex;flex-direction:column;justify-content:space-between;">
+
+                                <!-- Decorative circle -->
+                                <div style="position:absolute;top:-60px;right:-60px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none;"></div>
+                                <div style="position:absolute;bottom:-80px;left:-40px;width:320px;height:320px;border-radius:50%;background:rgba(0,0,0,0.1);pointer-events:none;"></div>
+
+                                <!-- Logo -->
+                                <div style="position:relative;">
+                                    <img src="https://www.webtenerife.com/-/media/project/webtenerife/common/logos_tenerife/tenerife_logo_degradado_esp.svg"
+                                         alt="Turismo de Tenerife"
+                                         style="width:100%;max-width:100%;height:auto;display:block;filter:brightness(0) invert(1);">
+                                    <div style="height:1px;background:rgba(255,255,255,0.12);margin-top:24px;"></div>
+                                </div>
+
+                                <!-- Title block -->
+                                <div style="position:relative;margin-top:28px;flex:1;">
+                                    <div id="thumb-title" class="text-white font-black leading-tight mb-3" style="font-size:26px;letter-spacing:-0.3px;">Tenerife — Ihr nächstes Reiseziel</div>
+                                    <div style="height:3px;width:36px;background:rgba(255,255,255,0.35);border-radius:2px;margin-bottom:14px;"></div>
+                                    <div id="thumb-subtitle" class="text-white/40 text-[10px] font-bold tracking-widest uppercase mb-1">Presentación preparada para</div>
+                                    <div id="thumb-name" class="text-white font-bold text-[16px]">Receptor</div>
+                                    <div id="thumb-org" class="text-white/50 text-[12px] mt-1"></div>
+                                </div>
+
+                                <!-- Module chips -->
+                                <div style="position:relative;margin-top:24px;">
+                                    <div class="text-white/25 text-[9px] font-bold tracking-widest uppercase mb-2">Módulos incluidos</div>
+                                    <div id="thumb-chips" class="flex flex-wrap gap-1.5"></div>
+                                </div>
+
+                                <!-- Hover overlay -->
+                                <div class="absolute inset-0 bg-brand-dark/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2.5 flex items-center gap-2 text-white text-[13px] font-bold">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        Ver presentación completa
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom nav -->
+                            <div class="flex items-center justify-between">
+                                <button onclick="navigate('new-report', document.getElementById('nav-new-report'))"
+                                        class="border border-gray-300 text-[#515152] px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide hover:border-brand hover:text-brand transition-colors flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Nueva presentación
+                                </button>
+                                <button onclick="navigate('reports', document.getElementById('nav-reports'))"
+                                        class="text-brand text-[12px] font-semibold hover:underline flex items-center gap-1">
+                                    Ver todas las presentaciones
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ── RIGHT: Info + actions ── -->
+                        <div class="flex flex-col gap-4">
+
+                            <!-- Success badge -->
+                            <div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-green-800 font-bold text-[13px]">Presentación generada correctamente</div>
+                                    <div class="text-green-600 text-[11px] mt-0.5"><span id="done-id">RPT-2026-0125</span> · Generado en 1.8s</div>
+                                </div>
+                            </div>
+
+                            <!-- Report metadata -->
+                            <div class="bg-white rounded-lg border border-gray-100 divide-y divide-gray-50">
+
+                                <!-- Recipient -->
+                                <div class="px-5 py-3.5 flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white font-black text-[10px] flex-shrink-0" id="done-avatar">ML</div>
+                                    <div class="min-w-0">
+                                        <div class="text-gray-900 font-semibold text-[13px] truncate" id="done-recipient">—</div>
+                                        <div class="text-[#515152] text-[11px] truncate" id="done-org">—</div>
+                                    </div>
+                                </div>
+
+                                <!-- Language + date -->
+                                <div class="px-5 py-3 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[11px] font-bold text-[#515152] uppercase tracking-wide">Idioma</span>
+                                        <span id="done-lang-badge" class="bg-brand/10 text-brand text-[11px] font-bold px-2 py-0.5 rounded-full">DE</span>
+                                    </div>
+                                    <div class="text-[11px] text-[#515152]" id="done-date">—</div>
+                                </div>
+
+                                <!-- Modules -->
+                                <div class="px-5 py-3.5">
+                                    <div class="text-[10px] font-bold text-[#515152] uppercase tracking-wider mb-2.5">Módulos incluidos</div>
+                                    <div class="flex flex-wrap gap-1.5" id="done-tags"><!-- filled by JS --></div>
+                                </div>
+
+                                <!-- URL -->
+                                <div class="px-5 py-3.5">
+                                    <div class="text-[10px] font-bold text-[#515152] uppercase tracking-wider mb-2">Enlace de la presentación</div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 bg-gray-50 border border-gray-200 rounded-md px-2.5 py-1.5 text-[11px] text-gray-500 font-mono truncate">
+                                            reports.turismotenerife.com/r/<span id="done-id-url">RPT-2026-0125</span>
+                                        </div>
+                                        <button onclick="copyReportUrl()"
+                                                id="copy-url-btn"
+                                                class="flex items-center gap-1.5 border border-gray-200 text-[#515152] hover:border-brand hover:text-brand px-2.5 py-1.5 rounded-md text-[11px] font-bold transition-colors whitespace-nowrap">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                            </svg>
+                                            Copiar URL
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CTAs -->
+                            <div class="flex flex-col gap-2">
+
+                                <!-- Primary: Ver presentación -->
+                                <button onclick="openReportPreview()"
+                                        class="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white px-5 py-3 rounded-full text-[13px] font-bold uppercase tracking-wide transition-colors shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    Ver presentación
+                                </button>
+
+                                <!-- Secondary row -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="openReportPreview()"
+                                            class="flex items-center justify-center gap-1.5 border-2 border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white px-3 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-wide transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4"/>
+                                        </svg>
+                                        Presentar
+                                    </button>
+                                    <button onclick="copyReportUrl()"
+                                            class="flex items-center justify-center gap-1.5 border-2 border-gray-300 text-gray-700 hover:border-brand hover:text-brand px-3 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-wide transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                        </svg>
+                                        Compartir
+                                    </button>
+                                </div>
+
+                                <!-- PDF download -->
+                                <button class="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 hover:bg-gray-50 px-5 py-2.5 rounded-full text-[12px] font-bold uppercase tracking-wide transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                    Descargar PDF
+                                </button>
+                            </div>
+
+                        </div><!-- /RIGHT -->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ── REPORTS ── -->
+        <section id="view-reports" class="p-8 fade-in hidden">
+            <div class="bg-white rounded-lg border border-gray-100 overflow-hidden">
+                <!-- Toolbar -->
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="relative flex-1 max-w-xs">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" placeholder="Buscar presentación o receptor..." id="reports-search"
+                               oninput="filterReports()"
+                               class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors">
+                    </div>
+                    <select id="reports-filter" onchange="filterReports()" class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand/30 bg-white">
+                        <option value="">Todos los mercados</option>
+                        <option value="Alemania">🇩🇪 Alemania</option>
+                        <option value="Francia">🇫🇷 Francia</option>
+                        <option value="Reino Unido">🇬🇧 Reino Unido</option>
+                        <option value="Países Bajos">🇳🇱 Países Bajos</option>
+                        <option value="Italia">🇮🇹 Italia</option>
+                        <option value="Suecia">🇸🇪 Suecia</option>
+                    </select>
+                    <button onclick="navigate('new-report', document.getElementById('nav-new-report'))"
+                            class="ml-auto bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Nuevo
+                    </button>
+                </div>
+
+                <table class="w-full" id="reports-table">
+                    <thead>
+                        <tr class="bg-gray-50/70">
+                            <th class="text-left px-5 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">ID</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Receptor</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Módulos</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Idioma</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Fecha</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Aperturas</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Estado</th>
+                            <th class="px-4 py-2.5"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-tbody" class="divide-y divide-gray-50">
+                        <!-- rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ── CATALOG ── -->
+        <section id="view-catalog" class="p-8 fade-in hidden">
+            <div class="grid grid-cols-3 gap-5" id="catalog-grid">
+                <!-- rendered by renderCatalog() -->
+            </div>
+        </section>
+
+        <!-- ── ANALYTICS ── -->
+        <section id="view-analytics" class="p-8 fade-in hidden">
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <!-- By market -->
+                <div class="bg-white rounded-lg border border-gray-100 p-6">
+                    <h2 class="font-semibold text-gray-900 text-[14px] mb-5">Aperturas por mercado</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-[12px] mb-1.5"><span class="font-semibold text-gray-700">🇩🇪 Alemania</span><span class="text-[#515152] font-medium">248</span></div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-ocean" style="width:100%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[12px] mb-1.5"><span class="font-semibold text-gray-700">🇬🇧 Reino Unido</span><span class="text-[#515152] font-medium">194</span></div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-ocean" style="width:78%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[12px] mb-1.5"><span class="font-semibold text-gray-700">🇫🇷 Francia</span><span class="text-[#515152] font-medium">151</span></div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-ocean" style="width:61%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[12px] mb-1.5"><span class="font-semibold text-gray-700">🇳🇱 Países Bajos</span><span class="text-[#515152] font-medium">127</span></div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-ocean" style="width:51%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[12px] mb-1.5"><span class="font-semibold text-gray-700">🇮🇹 Italia</span><span class="text-[#515152] font-medium">89</span></div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-ocean" style="width:36%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[12px] mb-1.5"><span class="font-semibold text-gray-700">🇸🇪 Suecia</span><span class="text-[#515152] font-medium">38</span></div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-ocean" style="width:15%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- By module -->
+                <div class="bg-white rounded-lg border border-gray-100 p-6">
+                    <h2 class="font-semibold text-gray-900 text-[14px] mb-5">Módulos más solicitados</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-base w-6">🌿</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[12px] mb-1"><span class="font-semibold text-gray-700">Naturaleza y Paisaje</span><span class="text-[#515152]">108 usos</span></div>
+                                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-emerald-500" style="width:100%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base w-6">☀️</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[12px] mb-1"><span class="font-semibold text-gray-700">Clima y Temporadas</span><span class="text-[#515152]">98 usos</span></div>
+                                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-yellow-400" style="width:91%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base w-6">🍽️</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[12px] mb-1"><span class="font-semibold text-gray-700">Gastronomía</span><span class="text-[#515152]">89 usos</span></div>
+                                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-brand" style="width:82%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base w-6">🏄</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[12px] mb-1"><span class="font-semibold text-gray-700">Deportes y Aventura</span><span class="text-[#515152]">76 usos</span></div>
+                                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-blue-500" style="width:70%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base w-6">🌱</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[12px] mb-1"><span class="font-semibold text-gray-700">Sostenibilidad</span><span class="text-[#515152]">67 usos</span></div>
+                                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-teal-500" style="width:62%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base w-6">🎭</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[12px] mb-1"><span class="font-semibold text-gray-700">Cultura y Tradición</span><span class="text-[#515152]">54 usos</span></div>
+                                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-purple-500" style="width:50%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base w-6">✈️</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[12px] mb-1"><span class="font-semibold text-gray-700">Conectividad</span><span class="text-[#515152]">41 usos</span></div>
+                                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-sky-500" style="width:38%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extra metrics row -->
+            <div class="grid grid-cols-3 gap-5">
+                <div class="bg-white rounded-lg border border-gray-100 p-6 text-center">
+                    <div class="text-3xl font-extrabold text-gray-900 mb-1">4.2 <span class="text-xl font-semibold text-[#515152]">min</span></div>
+                    <div class="text-[12px] text-gray-500 font-medium">Tiempo medio de lectura</div>
+                    <div class="text-[11px] text-green-600 mt-1 font-medium">↑ +0.8 min vs mes anterior</div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-100 p-6 text-center">
+                    <div class="text-3xl font-extrabold text-gray-900 mb-1">38</div>
+                    <div class="text-[12px] text-gray-500 font-medium">Presentaciones descargadas en PDF</div>
+                    <div class="text-[11px] text-green-600 mt-1 font-medium">31% del total generado</div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-100 p-6 text-center">
+                    <div class="text-3xl font-extrabold text-gray-900 mb-1">31<span class="text-xl font-semibold text-[#515152]">%</span></div>
+                    <div class="text-[12px] text-gray-500 font-medium">Tasa de recontacto</div>
+                    <div class="text-[11px] text-green-600 mt-1 font-medium">↑ +6 puntos en Q1 2026</div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ── SETTINGS ── -->
+        <section id="view-settings" class="p-8 fade-in hidden">
+            <div class="max-w-3xl space-y-6">
+
+                <!-- Users -->
+                <div class="bg-white rounded-lg border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100">
+                        <h2 class="font-semibold text-gray-900 text-[14px]">Usuarios del sistema</h2>
+                        <p class="text-[#515152] text-[12px] mt-0.5">Gestiona los accesos al panel de control.</p>
+                    </div>
+                    <table class="w-full">
+                        <thead><tr class="bg-gray-50/70">
+                            <th class="text-left px-6 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Usuario</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Rol</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Último acceso</th>
+                            <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Estado</th>
+                        </tr></thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5 flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white font-bold text-[10px]">ML</div>
+                                    <div><div class="text-[13px] font-semibold text-gray-900">María López</div><div class="text-[11px] text-[#515152]">m.lopez@turismotenerife.com</div></div>
+                                </td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] bg-brand/10 text-brand font-bold px-2 py-0.5 rounded-full">Admin</span></td>
+                                <td class="px-4 py-3.5 text-[12px] text-gray-500">Hoy, 09:41</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">● Activo</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5 flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-full bg-ocean flex items-center justify-center text-white font-bold text-[10px]">CM</div>
+                                    <div><div class="text-[13px] font-semibold text-gray-900">Carlos Medina</div><div class="text-[11px] text-[#515152]">c.medina@turismotenerife.com</div></div>
+                                </td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">Editor</span></td>
+                                <td class="px-4 py-3.5 text-[12px] text-gray-500">Ayer, 16:22</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">● Activo</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/60 transition-colors">
+                                <td class="px-6 py-3.5 flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-[10px]">AS</div>
+                                    <div><div class="text-[13px] font-semibold text-gray-900">Ana Suárez</div><div class="text-[11px] text-[#515152]">a.suarez@turismotenerife.com</div></div>
+                                </td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded-full">Lector</span></td>
+                                <td class="px-4 py-3.5 text-[12px] text-gray-500">04 Abr 2026</td>
+                                <td class="px-4 py-3.5"><span class="text-[11px] text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full font-medium">● Invitado</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Languages -->
+                <div class="bg-white rounded-lg border border-gray-100 p-6">
+                    <h2 class="font-semibold text-gray-900 text-[14px] mb-4">Idiomas activos</h2>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3"><div class="flex items-center gap-2 text-[13px] font-medium text-gray-700"><span>🇪🇸</span> Español</div><div class="w-9 h-5 rounded-full bg-brand relative cursor-pointer"><div class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow"></div></div></div>
+                        <div class="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3"><div class="flex items-center gap-2 text-[13px] font-medium text-gray-700"><span>🇬🇧</span> English</div><div class="w-9 h-5 rounded-full bg-brand relative cursor-pointer"><div class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow"></div></div></div>
+                        <div class="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3"><div class="flex items-center gap-2 text-[13px] font-medium text-gray-700"><span>🇩🇪</span> Deutsch</div><div class="w-9 h-5 rounded-full bg-brand relative cursor-pointer"><div class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow"></div></div></div>
+                        <div class="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3"><div class="flex items-center gap-2 text-[13px] font-medium text-gray-700"><span>🇫🇷</span> Français</div><div class="w-9 h-5 rounded-full bg-brand relative cursor-pointer"><div class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow"></div></div></div>
+                        <div class="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3"><div class="flex items-center gap-2 text-[13px] font-medium text-gray-700"><span>🇮🇹</span> Italiano</div><div class="w-9 h-5 rounded-full bg-brand relative cursor-pointer"><div class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow"></div></div></div>
+                        <div class="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3"><div class="flex items-center gap-2 text-[13px] font-medium text-gray-700"><span>🇳🇱</span> Nederlands</div><div class="w-9 h-5 rounded-full bg-brand relative cursor-pointer"><div class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow"></div></div></div>
+                    </div>
+                </div>
+
+                <!-- Closing template -->
+                <div class="bg-white rounded-lg border border-gray-100 p-6">
+                    <h2 class="font-semibold text-gray-900 text-[14px] mb-1">Plantilla de cierre por defecto</h2>
+                    <p class="text-[#515152] text-[12px] mb-4">Texto que aparece al final de cada presentación si no se especifica uno personalizado.</p>
+                    <textarea rows="3" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none transition-colors">Quedamos a tu disposición para ampliar cualquier información y organizar una visita de familiarización al destino.</textarea>
+                    <div class="flex justify-end mt-3">
+                        <button class="bg-sidebar text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-sidebar-h transition-colors">Guardar plantilla</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+    // ── MODULE DATA ──────────────────────────────────────
+    const MODULES = [
+      {
+        id: 'naturaleza', icon: '🌿', title: 'Naturaleza y Paisaje', desc: 'Teide, Anaga, laurisilva y espacios naturales', color: '#2d6a4f',
+        image: 'https://www.webtenerife.com/-/media/files/galeria-multimedia/folletos/sliders/organizar-experiencia-volcanica-sb.jpg?w=1920&hash=E519938C783089A21EBD0F2736AA8E8B',
+        highlights: ['Teide · 3.715 m · UNESCO World Heritage', 'Parque Rural de Anaga · Reserva Biosfera', 'Corona Forestal · bosque atlántico único', '10 espacios naturales protegidos'],
+        content: {
+          es: 'Tenerife alberga el Teide, el volcán más alto de España y tercero del mundo sobre su base oceánica, declarado Patrimonio de la Humanidad por la UNESCO. Sus ecosistemas únicos, desde la laurisilva milenaria del Parque Rural de Anaga hasta los paisajes volcánicos del Parque Nacional del Teide, concentran una biodiversidad excepcional. Con más de 80.000 hectáreas de espacios naturales protegidos, Tenerife es uno de los destinos de naturaleza más completos del Atlántico.',
+          en: 'Tenerife is home to Mount Teide, Spain\'s highest peak and one of the world\'s largest volcanic structures, a UNESCO World Heritage Site. Its unique ecosystems span ancient laurel forests in Anaga Rural Park to the dramatic volcanic landscapes of Teide National Park, hosting exceptional biodiversity. With over 80,000 hectares of protected natural space, Tenerife stands as one of the Atlantic\'s most complete nature destinations.',
+          de: 'Teneriffa beherbergt den Teide, Spaniens höchsten Gipfel und UNESCO-Welterbe, der sich eindrucksvoll über die Insel erhebt. Seine einzigartigen Ökosysteme – vom uralten Lorbeerwald im Anaga-Gebirge bis zu den vulkanischen Mondlandschaften des Teide-Nationalparks – bieten eine außergewöhnliche Artenvielfalt. Mit mehr als 80.000 Hektar Naturschutzgebiet ist Teneriffa eines der vielseitigsten Naturreiseziele im gesamten Atlantikraum.',
+          fr: 'Ténérife abrite le Teide, le plus haut sommet d\'Espagne et patrimoine mondial de l\'UNESCO, qui domine majestueusement l\'île. Ses écosystèmes uniques, de la forêt laurifère millénaire du parc rural d\'Anaga aux paysages volcaniques du parc national du Teide, concentrent une biodiversité remarquable. Avec plus de 80 000 hectares d\'espaces naturels protégés, Ténérife est l\'une des destinations nature les plus complètes de l\'Atlantique.',
+          it: 'Tenerife ospita il Teide, la vetta più alta della Spagna e Patrimonio dell\'Umanità UNESCO, che domina l\'isola in modo imponente. I suoi ecosistemi unici, dalla millenaria foresta di lauro del Parco Rurale di Anaga ai paesaggi vulcanici del Parco Nazionale del Teide, racchiudono una biodiversità eccezionale. Con oltre 80.000 ettari di spazi naturali protetti, Tenerife è una delle destinazioni naturali più complete dell\'Atlantico.',
+          nl: 'Tenerife herbergt de Teide, de hoogste bergtop van Spanje en UNESCO Werelderfgoed, die imposant boven het eiland uittorent. De unieke ecosystemen variëren van de eeuwenoude laurierwouden van Anaga tot de vulkanische maanlandschappen van het Nationaal Park Teide. Met meer dan 80.000 hectare beschermd natuurgebied is Tenerife een van de meest complete natuurbestemmingen van de Atlantische Oceaan.'
+        }
+      },
+      {
+        id: 'gastro', icon: '🍽️', title: 'Gastronomía', desc: 'Cocina volcánica, Michelin y productos locales', color: '#9a3412',
+        image: 'https://estaticos-cdn.prensaiberica.es/clip/4b2be5b3-d1ec-404a-ab50-b2d42c4e2451_alta-libre-aspect-ratio_default_0.jpg',
+        imageCover: 'https://s03.s3c.es/imag/_v0/1200x655/e/b/e/rincon-juan-carlos.jpg',
+        highlights: ['2 restaurantes con estrella Michelin', 'DO Tacoronte-Acentejo · vinos atlánticos únicos', 'Papas negras, mojo y cocina de autor volcánica', '+400 restaurantes · cocina de mercado y fusión'],
+        content: {
+          es: 'La gastronomía de Tenerife combina la tradición canaria con la vanguardia culinaria, ofreciendo desde las papas negras con mojo hasta la alta cocina con reconocimiento Michelin. La isla cuenta con denominaciones de origen propias, vinos atlánticos de terruño volcánico y una red de restaurantes de producto local que hacen de cada comida una experiencia auténtica. El turista gastronómico encuentra en Tenerife un destino de referencia en el panorama gastronómico europeo.',
+          en: 'Tenerife\'s gastronomy blends Canarian tradition with culinary innovation, from classic papas negras with mojo to Michelin-starred cuisine. The island boasts its own wine appellations, unique Atlantic volcanic terroir wines, and a network of farm-to-table restaurants that make every meal an authentic experience. Food-focused travellers find Tenerife a benchmark destination on the European gastronomic scene.',
+          de: 'Teneriffas Gastronomie verbindet kanarische Tradition mit kulinarischer Innovation – von traditionellen Papas negras mit Mojo bis hin zur Michelin-ausgezeichneten Hochküche. Die Insel verfügt über eigene Weinanbaugebiete, einzigartige atlantische Vulkanweine und ein Netzwerk an Farm-to-Table-Restaurants. Genussreisende finden in Teneriffa eine Referenzdestination in der europäischen Gastronomieszene.',
+          fr: 'La gastronomie de Ténérife marie tradition canarienne et innovation culinaire, des papas negras au mojo aux tables étoilées Michelin. L\'île possède ses propres appellations viticoles, des vins de terroir volcanique atlantique uniques et un réseau de restaurants locaux qui font de chaque repas une expérience authentique. Les voyageurs gastronomes trouvent à Ténérife une destination de référence sur la scène gastronomique européenne.',
+          it: 'La gastronomia di Tenerife unisce la tradizione canaria all\'innovazione culinaria, dalle papas negras con mojo alla cucina stellata Michelin. L\'isola vanta denominazioni di origine proprie, vini atlantici di terroir vulcanico unici e una rete di ristoranti a chilometro zero che rendono ogni pasto un\'esperienza autentica. I viaggiatori gastronomici trovano a Tenerife una destinazione di riferimento nel panorama gastronomico europeo.',
+          nl: 'De gastronomie van Tenerife combineert de Canarische traditie met culinaire innovatie, van klassieke papas negras met mojo tot Michelin-sterrenrestaurants. Het eiland heeft eigen wijnappellaties, unieke Atlantische vulkanische terroirwijnen en een netwerk van lokale restaurants. Gastronomische reizigers vinden in Tenerife een referentiebestemming op de Europese gastronomische scène.'
+        }
+      },
+      {
+        id: 'deportes', icon: '🏄', title: 'Deportes y Aventura', desc: 'Surf, senderismo, golf y turismo activo', color: '#1d4ed8',
+        image: 'https://www.webtenerife.com/-/media/files/que-hacer/deportes/sliders/surf-las-americas-2.jpg?w=1920&hash=8E2E98E79371F523CC61A58B197CEA06',
+        image2: 'https://www.webtenerife.com/-/media/files/que-hacer/deportes/sliders/golf7-sb.jpg?w=1920&hash=49EA2E46F098B4577F37D03373261944',
+        highlights: ['350 km de rutas de senderismo señalizadas', '12 campos de golf · condiciones todo el año', 'El Médano · spot de surf y windsurf de clase mundial', 'Parapente, escalada, buceo y ciclismo volcánico'],
+        content: {
+          es: 'Tenerife es un destino de deportes activos de primer nivel europeo, con 350 kilómetros de rutas de senderismo que van desde el nivel del mar hasta la cumbre del Teide. Sus condiciones climáticas permiten practicar golf los 365 días del año en 12 campos de primer nivel, mientras que El Médano atrae surfistas y windsurfistas de todo el mundo con sus vientos alisios constantes. La variedad de disciplinas —desde parapente hasta escalada volcánica— convierte a Tenerife en el destino de turismo activo más completo del Atlántico.',
+          en: 'Tenerife is a top European active sports destination, offering 350 kilometres of signposted hiking trails ranging from sea level to the Teide summit. Year-round climate conditions allow golf to be played across 12 premier courses every day of the year, while El Médano attracts world-class surfers and windsurfers with its constant trade winds. From paragliding to volcanic rock climbing, Tenerife offers the most comprehensive active tourism offering in the Atlantic.',
+          de: 'Teneriffa ist eines der führenden Aktivsportreiseziele Europas mit 350 Kilometern ausgeschilderten Wanderwegen vom Meeresspiegel bis zum Teide-Gipfel. Das ganzjährige Klima ermöglicht Golf auf 12 erstklassigen Plätzen an jedem Tag des Jahres, während El Médano mit seinen konstanten Passatwinden Weltklass-Surfer und Windsurfer anzieht. Von Paragliding bis Vulkankletttern – Teneriffa bietet das vielseitigste Aktivtourismusangebot des Atlantiks.',
+          fr: 'Ténérife est l\'une des premières destinations de sports actifs en Europe, avec 350 kilomètres de sentiers balisés du niveau de la mer au sommet du Teide. Le climat permet de jouer au golf toute l\'année sur 12 parcours de premier plan, tandis qu\'El Médano attire les surfeurs et véliplanchistes du monde entier avec ses alizés constants. Du parapente à l\'escalade volcanique, Ténérife offre la palette de tourisme actif la plus complète de l\'Atlantique.',
+          it: 'Tenerife è una destinazione di sport attivi di primo livello europeo, con 350 chilometri di sentieri segnalati dal livello del mare alla vetta del Teide. Il clima consente di giocare a golf tutto l\'anno su 12 campi di alto livello, mentre El Médano attira surfisti e windsurfisti di tutto il mondo con i suoi venti alisei costanti. Dal parapendio all\'arrampicata vulcanica, Tenerife offre l\'offerta di turismo attivo più completa dell\'Atlantico.',
+          nl: 'Tenerife is een toonaangevende Europese bestemming voor actieve sporten, met 350 kilometer bewegwijzerde wandelroutes van zeeniveau tot aan de top van de Teide. Het jaarronde klimaat maakt golfen op 12 topbanen het hele jaar door mogelijk, terwijl El Médano met zijn constante passaatwinden surfers en windsurfers van wereldklasse aantrekt. Van paragliding tot vulkaanklimmen – Tenerife biedt het meest complete actieve toeristenaanbod van de Atlantische Oceaan.'
+        }
+      },
+      {
+        id: 'clima', icon: '☀️', title: 'Clima y Temporadas', desc: '22 °C de media anual · 320 días de sol', color: '#b45309',
+        highlights: ['22 °C de temperatura media anual', '320 días de sol garantizados', 'Sin temporada baja · destino 365 días', 'Sin desfase horario con Europa Central'],
+        content: {
+          es: 'Tenerife disfruta de un clima privilegiado con una temperatura media anual de 22 °C, reconocida internacionalmente como la "Isla de la Eterna Primavera". Con más de 320 días de sol al año y mínimas variaciones estacionales, es uno de los destinos sin temporada baja por excelencia. Su situación geográfica a menos de 4 horas de vuelo de los principales mercados europeos y en el mismo huso horario que Centroeuropa facilita la planificación de viajes de corta y media duración.',
+          en: 'Tenerife enjoys an exceptional climate with an average annual temperature of 22°C, internationally recognised as the "Island of Eternal Spring". With over 320 sunny days per year and minimal seasonal variation, it is one of the world\'s premier year-round destinations. Its location just 4 hours from major European markets, sharing the same time zone as Central Europe, makes it ideal for short and medium-stay travel.',
+          de: 'Teneriffa genießt ein außergewöhnliches Klima mit einer jährlichen Durchschnittstemperatur von 22 °C und ist international als "Insel des ewigen Frühlings" anerkannt. Mit über 320 Sonnentagen im Jahr und minimalen jahreszeitlichen Schwankungen ist sie eine der renommiertesten Ganzjahresdestinationen der Welt. Nur 4 Flugstunden von den wichtigsten europäischen Märkten entfernt und in der gleichen Zeitzone wie Mitteleuropa, ist Teneriffa ideal für Kurz- und Mittelstreckenreisen.',
+          fr: 'Ténérife bénéficie d\'un climat exceptionnel avec une température annuelle moyenne de 22 °C, reconnue internationalement comme « l\'île du printemps éternel ». Avec plus de 320 jours de soleil par an et des variations saisonnières minimales, c\'est l\'une des destinations phares sans saison creuse. Située à seulement 4 heures des principaux marchés européens et dans le même fuseau horaire que l\'Europe centrale, elle est idéale pour les séjours courts et moyens.',
+          it: 'Tenerife gode di un clima eccezionale con una temperatura media annua di 22 °C, riconosciuta internazionalmente come "Isola dell\'Eterna Primavera". Con oltre 320 giorni di sole all\'anno e minime variazioni stagionali, è una delle destinazioni senza bassa stagione per eccellenza. Situata a meno di 4 ore di volo dai principali mercati europei e nello stesso fuso orario dell\'Europa Centrale, è ideale per soggiorni brevi e medi.',
+          nl: 'Tenerife geniet een uitzonderlijk klimaat met een gemiddelde jaartemperatuur van 22°C en staat internationaal bekend als het "Eiland van de Eeuwige Lente". Met meer dan 320 zonnige dagen per jaar en minimale seizoensvariaties is het een van de toonaangevende bestemmingen zonder laagseizoen. Op slechts 4 vlieguren van de grote Europese markten en in dezelfde tijdzone als Centraal-Europa is het ideaal voor korte en middellange verblijven.'
+        }
+      },
+      {
+        id: 'cultura', icon: '🎭', title: 'Cultura y Tradición', desc: 'Carnaval, patrimonio guanche y La Laguna UNESCO', color: '#7c3aed',
+        image: 'https://www.webtenerife.com/-/media/files/que-visitar/pueblos-y-caseros/sliders/pueblos-masca-sb.jpg?w=1920&hash=38D39272A672293778D8ACC9B69707B3',
+        highlights: ['Carnaval de Santa Cruz · 2º más grande del mundo', 'San Cristóbal de La Laguna · Ciudad Patrimonio UNESCO', 'Legado guanche · cultura prehispánica única', 'Lucha canaria · Silbo · tradiciones vivas'],
+        content: {
+          es: 'La cultura de Tenerife es una síntesis única entre el legado prehispánico guanche, la herencia española y la influencia latinoamericana, que se expresa en sus festividades, su arquitectura y sus tradiciones vivas. El Carnaval de Santa Cruz de Tenerife es el segundo más importante del mundo tras el de Río de Janeiro, y la ciudad histórica de San Cristóbal de La Laguna está declarada Patrimonio de la Humanidad por la UNESCO. La lucha canaria, el silbo gomero y la artesanía local completan una oferta cultural auténtica y diferencial.',
+          en: 'Tenerife\'s culture is a unique blend of pre-Hispanic Guanche heritage, Spanish tradition and Latin American influence, expressed through its festivals, architecture and living customs. Santa Cruz de Tenerife\'s Carnival is the world\'s second largest after Rio de Janeiro, and the historic city of San Cristóbal de La Laguna is a UNESCO World Heritage Site. Canarian wrestling, the Gomera whistle language and local crafts round off an authentic and distinctive cultural offering.',
+          de: 'Teneriffas Kultur ist eine einzigartige Synthese aus dem prähistorischen Guanchen-Erbe, der spanischen Tradition und lateinamerikanischen Einflüssen, die sich in Festen, Architektur und lebendigen Bräuchen ausdrückt. Der Karneval von Santa Cruz de Tenerife ist der zweitgrößte der Welt nach Rio de Janeiro, und die historische Stadt San Cristóbal de La Laguna ist UNESCO-Welterbe. Kanarisches Ringen, die Pfeifsprache vom Silbo und lokales Kunsthandwerk runden das authentische Kulturangebot ab.',
+          fr: 'La culture de Ténérife est une synthèse unique entre le patrimoine guanche préhispanique, la tradition espagnole et les influences latino-américaines, exprimée à travers ses fêtes, son architecture et ses traditions vivantes. Le carnaval de Santa Cruz de Ténérife est le deuxième plus grand du monde après celui de Rio de Janeiro, et la ville historique de San Cristóbal de La Laguna est classée au patrimoine mondial de l\'UNESCO. La lutte canarienne, le Silbo Gomero et l\'artisanat local complètent une offre culturelle authentique et différenciante.',
+          it: 'La cultura di Tenerife è una sintesi unica tra il patrimonio preispanico guanche, la tradizione spagnola e l\'influenza latinoamericana, espressa nelle feste, nell\'architettura e nelle tradizioni vive. Il Carnevale di Santa Cruz de Tenerife è il secondo più grande del mondo dopo quello di Rio de Janeiro, e la città storica di San Cristóbal de La Laguna è Patrimonio dell\'Umanità UNESCO. La lotta canaria, il Silbo Gomero e l\'artigianato locale completano un\'offerta culturale autentica e differenziante.',
+          nl: 'De cultuur van Tenerife is een unieke synthese van het pre-Spaanse Guanche-erfgoed, de Spaanse traditie en Latijns-Amerikaanse invloeden, uitgedrukt in feesten, architectuur en levende tradities. Het carnaval van Santa Cruz de Tenerife is het op één na grootste ter wereld na Rio de Janeiro, en de historische stad San Cristóbal de La Laguna is UNESCO Werelderfgoed. Canarisch worstelen, het Silbo Gomero fluitgeheimtaal en lokale ambachtelijke producten completeren een authentiek cultureel aanbod.'
+        }
+      },
+      {
+        id: 'sostenibilidad', icon: '🌱', title: 'Sostenibilidad', desc: 'Biosfera UNESCO, carbono neutro 2030', color: '#166534',
+        highlights: ['Reserva de la Biosfera UNESCO reconocida', 'Plan Carbono Neutro 2030 en marcha', '47% de energía de fuentes renovables', 'Certificación Starlight · cielos protegidos'],
+        content: {
+          es: 'Tenerife ha convertido la sostenibilidad en uno de los pilares estratégicos de su modelo turístico, con un plan de acción hacia la neutralidad de carbono en 2030 ya en ejecución. El archipiélago canario cuenta con reconocimiento UNESCO como Reserva de la Biosfera, protegiendo ecosistemas únicos que coexisten con la actividad turística de forma responsable. La certificación Starlight para la protección de sus cielos nocturnos y el porcentaje creciente de energías renovables posicionan a Tenerife como referente europeo en turismo sostenible.',
+          en: 'Tenerife has made sustainability a strategic pillar of its tourism model, with a carbon neutrality action plan for 2030 already underway. The Canary Islands hold UNESCO Biosphere Reserve recognition, protecting unique ecosystems that coexist responsibly with tourism activity. Starlight certification for dark sky protection and a growing share of renewable energy position Tenerife as a European benchmark for sustainable tourism.',
+          de: 'Teneriffa hat Nachhaltigkeit zu einem strategischen Pfeiler seines Tourismusmodells gemacht, mit einem bereits laufenden Aktionsplan zur Klimaneutralität bis 2030. Die Kanarischen Inseln sind als UNESCO-Biosphärenreservat anerkannt und schützen einzigartige Ökosysteme, die verantwortungsvoll mit dem Tourismus koexistieren. Die Starlight-Zertifizierung zum Schutz des Nachthimmels und ein wachsender Anteil erneuerbarer Energien positionieren Teneriffa als europäisches Referenzmodell für nachhaltigen Tourismus.',
+          fr: 'Ténérife a fait de la durabilité l\'un des piliers stratégiques de son modèle touristique, avec un plan d\'action vers la neutralité carbone en 2030 déjà en cours. Les îles Canaries bénéficient de la reconnaissance UNESCO en tant que réserve de biosphère, protégeant des écosystèmes uniques qui coexistent de manière responsable avec le tourisme. La certification Starlight pour la protection du ciel nocturne et une part croissante d\'énergies renouvelables positionnent Ténérife comme référence européenne du tourisme durable.',
+          it: 'Tenerife ha fatto della sostenibilità uno dei pilastri strategici del suo modello turistico, con un piano d\'azione verso la neutralità carbonica entro il 2030 già in esecuzione. Le Isole Canarie godono del riconoscimento UNESCO come Riserva della Biosfera, proteggendo ecosistemi unici che convivono responsabilmente con l\'attività turistica. La certificazione Starlight per la protezione dei cieli notturni e una quota crescente di energie rinnovabili posizionano Tenerife come riferimento europeo per il turismo sostenibile.',
+          nl: 'Tenerife heeft duurzaamheid tot een strategische pijler van zijn toeristische model gemaakt, met een actieplan voor koolstofneutraliteit in 2030 dat al loopt. De Canarische Eilanden hebben UNESCO Biosfeerreservaat-erkenning, waarbij unieke ecosystemen verantwoord samengaan met toeristische activiteiten. De Starlight-certificering voor de bescherming van de nachtelijke hemel en een groeiend aandeel hernieuwbare energie positioneren Tenerife als Europees referentiepunt voor duurzaam toerisme.'
+        }
+      },
+      {
+        id: 'conectividad', icon: '✈️', title: 'Conectividad', desc: 'Dos aeropuertos · 180+ rutas directas a Europa', color: '#0369a1',
+        highlights: ['2 aeropuertos internacionales operativos', '+180 rutas aéreas directas con Europa', 'Menos de 4 horas desde Alemania, UK y Francia', 'Puerto de Santa Cruz · escala de cruceros líder'],
+        content: {
+          es: 'Tenerife dispone de dos aeropuertos internacionales —Tenerife Norte y Tenerife Sur— que gestionan conjuntamente más de 180 rutas directas con los principales mercados europeos durante todo el año. Con tiempos de vuelo inferiores a 4 horas desde Alemania, Reino Unido, Francia o los Países Bajos, es uno de los destinos insulares más accesibles de Europa. El Puerto de Santa Cruz de Tenerife es además una de las principales escalas de cruceros del Atlántico, reforzando la multimodalidad del destino.',
+          en: 'Tenerife has two international airports — Tenerife Norte and Tenerife Sur — jointly operating over 180 direct routes to Europe\'s major markets year-round. With flight times under 4 hours from Germany, the UK, France and the Netherlands, it is one of Europe\'s most accessible island destinations. The Port of Santa Cruz de Tenerife is also one of the Atlantic\'s leading cruise stopovers, reinforcing the destination\'s multimodal connectivity.',
+          de: 'Teneriffa verfügt über zwei internationale Flughäfen — Teneriffa Nord und Teneriffa Süd — die gemeinsam über 180 Direktverbindungen zu den wichtigsten europäischen Märkten das ganze Jahr über betreiben. Mit Flugzeiten unter 4 Stunden aus Deutschland, Großbritannien, Frankreich und den Niederlanden ist es eines der zugänglichsten Inselreiseziele Europas. Der Hafen von Santa Cruz de Tenerife ist zudem einer der bedeutendsten Kreuzfahrtanläufe im Atlantik.',
+          fr: 'Ténérife dispose de deux aéroports internationaux — Ténérife Nord et Ténérife Sud — qui opèrent conjointement plus de 180 liaisons directes vers les principaux marchés européens tout au long de l\'année. Avec des temps de vol inférieurs à 4 heures depuis l\'Allemagne, le Royaume-Uni, la France et les Pays-Bas, c\'est l\'une des destinations insulaires les plus accessibles d\'Europe. Le port de Santa Cruz de Ténérife est également l\'une des principales escales de croisières de l\'Atlantique.',
+          it: 'Tenerife dispone di due aeroporti internazionali — Tenerife Norte e Tenerife Sur — che gestiscono congiuntamente più di 180 rotte dirette verso i principali mercati europei durante tutto l\'anno. Con tempi di volo inferiori a 4 ore dalla Germania, dal Regno Unito, dalla Francia e dai Paesi Bassi, è una delle destinazioni insulari più accessibili d\'Europa. Il Porto di Santa Cruz de Tenerife è inoltre una delle principali escale crocieristiche dell\'Atlantico.',
+          nl: 'Tenerife heeft twee internationale luchthavens — Tenerife Norte en Tenerife Sur — die samen meer dan 180 directe routes naar de grote Europese markten het hele jaar door exploiteren. Met vluchttijden van minder dan 4 uur vanuit Duitsland, het VK, Frankrijk en Nederland is het een van de meest toegankelijke eilandbestemmingen van Europa. De haven van Santa Cruz de Tenerife is bovendien een van de belangrijkste cruisehavens van de Atlantische Oceaan.'
+        }
+      },
+      {
+        id: 'playas', icon: '🏖️', title: 'Playas y Costa', desc: 'Arena negra volcánica, Los Gigantes y costa atlántica', color: '#0e7490',
+        highlights: ['Las Teresitas · arena del desierto del Sáhara', 'Acantilados Los Gigantes · 800 m de altura', 'Banderas Azules EU en múltiples playas', '3 ecosistemas costeros distintos en una isla'],
+        content: {
+          es: 'La costa de Tenerife combina playas de arena volcánica negra, arenales de arena dorada del Sáhara y espectaculares acantilados como Los Gigantes, que se alzan hasta 800 metros sobre el Atlántico. Las Teresitas, en Santa Cruz, es una de las playas más singulares del mundo, con arena traída del desierto africano que dibuja una bahía protegida de aguas tranquilas. El litoral tinerfeño acumula varias Banderas Azules europeas y ofrece tres ecosistemas costeros claramente diferenciados en menos de 100 kilómetros de costa.',
+          en: 'Tenerife\'s coastline combines black volcanic sand beaches, golden Saharan sand coves and dramatic cliffs like Los Gigantes, rising up to 800 metres above the Atlantic. Las Teresitas in Santa Cruz is one of the world\'s most unique beaches, with sand brought from the African desert forming a protected bay of calm waters. Tenerife\'s shoreline holds several European Blue Flags and features three distinctly different coastal ecosystems within less than 100 kilometres of coastline.',
+          de: 'Teneriffas Küste vereint schwarze Vulkansandstrände, goldene Sahara-Sandstrände und dramatische Klippen wie Los Gigantes, die bis zu 800 Meter über dem Atlantik aufragen. Las Teresitas in Santa Cruz ist einer der einzigartigsten Strände der Welt, mit aus der afrikanischen Wüste gebrachtem Sand, der eine geschützte Bucht mit ruhigen Gewässern bildet. Die tenerifianische Küste trägt mehrere Europäische Blaue Flaggen und bietet drei klar unterschiedliche Küstenökosysteme auf weniger als 100 Küstenkilometern.',
+          fr: 'Le littoral de Ténérife combine des plages de sable volcanique noir, des criques de sable doré du Sahara et des falaises spectaculaires comme Los Gigantes, qui s\'élèvent jusqu\'à 800 mètres au-dessus de l\'Atlantique. Las Teresitas à Santa Cruz est l\'une des plages les plus uniques au monde, avec du sable apporté du désert africain formant une baie protégée aux eaux calmes. Le littoral de Ténérife compte plusieurs Pavillons Bleus européens et offre trois écosystèmes côtiers clairement différenciés sur moins de 100 kilomètres de côtes.',
+          it: 'La costa di Tenerife combina spiagge di sabbia vulcanica nera, calette di sabbia dorata del Sahara e spettacolari scogliere come Los Gigantes, che si elevano fino a 800 metri sull\'Atlantico. Las Teresitas, a Santa Cruz, è una delle spiagge più uniche al mondo, con sabbia portata dal deserto africano che forma una baia protetta di acque tranquille. Il litorale tenerifeno raccoglie diverse Bandiere Blu europee e offre tre ecosistemi costieri chiaramente differenziati in meno di 100 chilometri di costa.',
+          nl: 'De kustlijn van Tenerife combineert zwarte vulkanische zandstranden, goudkleurige Sahara-zandbaaien en dramatische kliffen zoals Los Gigantes, die tot 800 meter boven de Atlantische Oceaan uitsteken. Las Teresitas in Santa Cruz is een van de meest unieke stranden ter wereld, met zand dat uit de Afrikaanse woestijn is meegebracht en een beschermde baai met rustig water vormt. De kustlijn van Tenerife heeft meerdere Europese Blauwe Vlaggen en biedt drie duidelijk verschillende kustecosystemen op minder dan 100 kilometer kustlijn.'
+        }
+      },
+      {
+        id: 'alojamiento', icon: '🏨', title: 'Alojamiento Premium', desc: '23 hoteles 5★ · resorts internacionales', color: '#92400e',
+        highlights: ['23 hoteles de 5 estrellas en activo', 'Hard Rock, Iberostar, Bahía Príncipe, Meliá', '+34% crecimiento del segmento boutique (2024)', 'Oferta de lujo accesible · excelente relación calidad-precio'],
+        content: {
+          es: 'Tenerife dispone de una planta hotelera de primer nivel con 23 hoteles de cinco estrellas y marcas internacionales de referencia como Hard Rock Hotel, Iberostar, Bahía Príncipe y Meliá. El segmento de alojamiento boutique ha crecido un 34% en 2024, con propiedades de diseño singulares que ofrecen experiencias auténticas y personalizadas. La relación calidad-precio del alojamiento en Tenerife es una ventaja competitiva clave frente a otros destinos mediterráneos de igual categoría.',
+          en: 'Tenerife boasts a top-tier hotel plant with 23 five-star hotels and leading international brands such as Hard Rock Hotel, Iberostar, Bahía Príncipe and Meliá. The boutique accommodation segment grew 34% in 2024, with unique design properties offering authentic and personalised experiences. Tenerife\'s value-for-money accommodation offer is a key competitive advantage over other Mediterranean destinations of equivalent category.',
+          de: 'Teneriffa verfügt über eine erstklassige Hotelanlage mit 23 Fünf-Sterne-Hotels und führenden internationalen Marken wie Hard Rock Hotel, Iberostar, Bahía Príncipe und Meliá. Das Boutique-Unterkunftssegment wuchs 2024 um 34 %, mit einzigartigen Designunterkünften, die authentische und personalisierte Erlebnisse bieten. Das Preis-Leistungs-Verhältnis der Unterkünfte auf Teneriffa ist ein entscheidender Wettbewerbsvorteil gegenüber anderen Mittelmeerdestinationen gleicher Kategorie.',
+          fr: 'Ténérife dispose d\'une infrastructure hôtelière de premier plan avec 23 hôtels cinq étoiles et des marques internationales de référence comme Hard Rock Hotel, Iberostar, Bahía Príncipe et Meliá. Le segment d\'hébergement boutique a progressé de 34 % en 2024, avec des propriétés au design unique offrant des expériences authentiques et personnalisées. Le rapport qualité-prix de l\'hébergement à Ténérife est un avantage concurrentiel clé par rapport à d\'autres destinations méditerranéennes de même catégorie.',
+          it: 'Tenerife dispone di una pianta alberghiera di primo livello con 23 hotel a cinque stelle e marchi internazionali di riferimento come Hard Rock Hotel, Iberostar, Bahía Príncipe e Meliá. Il segmento accommodation boutique è cresciuto del 34% nel 2024, con strutture di design uniche che offrono esperienze autentiche e personalizzate. Il rapporto qualità-prezzo dell\'alloggio a Tenerife è un vantaggio competitivo chiave rispetto ad altre destinazioni mediterranee di pari categoria.',
+          nl: 'Tenerife heeft een topklasse hotelinfrastructuur met 23 vijfsterrenhotels en toonaangevende internationale merken zoals Hard Rock Hotel, Iberostar, Bahía Príncipe en Meliá. Het boutique-accommodatiesegment groeide in 2024 met 34%, met unieke designaccommodaties die authentieke en gepersonaliseerde ervaringen bieden. De prijs-kwaliteitverhouding van accommodaties op Tenerife is een belangrijk concurrentievoordeel ten opzichte van andere Middellandse Zee-bestemmingen van gelijke categorie.'
+        }
+      },
+      {
+        id: 'eventos', icon: '🎪', title: 'Eventos y MICE', desc: 'Congresos, incentivos y eventos deportivos', color: '#be185d',
+        highlights: ['Auditorio Calatrava · sala sinfónica world-class', '+200 eventos internacionales al año', 'Segmento MICE en crecimiento sostenido', 'Incentivos premium · experiencias exclusivas'],
+        content: {
+          es: 'Tenerife cuenta con una infraestructura para eventos y congresos de nivel europeo, encabezada por el Auditorio de Tenerife diseñado por Santiago Calatrava, sala sinfónica de referencia internacional. El destino acoge más de 200 eventos internacionales al año, incluyendo congresos científicos, ferias de turismo, competiciones deportivas mundiales y eventos de incentivos corporativos de primer nivel. La combinación de infraestructuras modernas, clima garantizado y oferta complementaria única posiciona a Tenerife como destino MICE de primer orden europeo.',
+          en: 'Tenerife has European-level events and congress infrastructure, led by the Auditorio de Tenerife designed by Santiago Calatrava, an internationally acclaimed concert and conference hall. The destination hosts over 200 international events annually, including scientific congresses, tourism trade fairs, world sporting competitions and top-tier corporate incentive events. The combination of modern infrastructure, guaranteed weather and unique complementary offer positions Tenerife as a leading European MICE destination.',
+          de: 'Teneriffa verfügt über eine europäische Veranstaltungs- und Kongressinfrastruktur, angeführt vom Auditorio de Tenerife von Santiago Calatrava, einer international renommierten Konzert- und Konferenzhalle. Das Reiseziel veranstaltet jährlich über 200 internationale Events, darunter wissenschaftliche Kongresse, Tourismusmessen, Weltsportmeisterschaften und erstklassige Unternehmens-Incentive-Events. Die Kombination aus moderner Infrastruktur, garantiertem Klima und einzigartigem Ergänzungsangebot positioniert Teneriffa als führende europäische MICE-Destination.',
+          fr: 'Ténérife dispose d\'une infrastructure de congrès et d\'événements de niveau européen, avec en tête l\'Auditorium de Ténérife conçu par Santiago Calatrava, salle symphonique de renommée internationale. La destination accueille plus de 200 événements internationaux par an, dont des congrès scientifiques, des salons du tourisme, des compétitions sportives mondiales et des événements d\'incentives d\'entreprise de premier plan. La combinaison d\'infrastructures modernes, d\'un climat garanti et d\'une offre complémentaire unique positionne Ténérife comme une destination MICE majeure en Europe.',
+          it: 'Tenerife dispone di un\'infrastruttura per eventi e congressi di livello europeo, guidata dall\'Auditorio de Tenerife progettato da Santiago Calatrava, sala sinfonica di riferimento internazionale. La destinazione ospita oltre 200 eventi internazionali all\'anno, tra cui congressi scientifici, fiere del turismo, competizioni sportive mondiali ed eventi incentive aziendali di primo livello. La combinazione di infrastrutture moderne, clima garantito e un\'offerta complementare unica posiziona Tenerife come destinazione MICE di primo ordine in Europa.',
+          nl: 'Tenerife heeft een evenementen- en congressinfrastructuur van Europees niveau, geleid door het Auditorio de Tenerife ontworpen door Santiago Calatrava, een internationaal gerenommeerde concertzaal. De bestemming organiseert jaarlijks meer dan 200 internationale evenementen, waaronder wetenschappelijke congressen, toeristische beurzen, wereldsportcompetities en topklasse corporate incentive evenementen. De combinatie van moderne infrastructuur, gegarandeerd klimaat en een uniek complementair aanbod positioneert Tenerife als een toonaangevende Europese MICE-bestemming.'
+        }
+      }
+    ];
+
+    // ── STEP STATE ────────────────────────────────────────
+    let selectedModules = [];
+    let currentStep     = 1;
+    let recipientName   = '';
+    let recipientOrg    = '';
+    let selectedLang    = 'de';
+    let closingNote     = '';
+    let reportId        = '';
+
+    const LANG_LABELS = { es:'ES', en:'EN', de:'DE', fr:'FR', it:'IT', nl:'NL' };
+    const LANG_NAMES  = { es:'Español', en:'English', de:'Deutsch', fr:'Français', it:'Italiano', nl:'Nederlands' };
+    const COVER_TITLES = {
+        es: 'Tenerife — Tu Próximo Destino',
+        en: 'Tenerife — Your Next Destination',
+        de: 'Teneriffa — Ihr nächstes Reiseziel',
+        fr: 'Ténérife — Votre Prochaine Destination',
+        it: 'Tenerife — La Tua Prossima Destinazione',
+        nl: 'Tenerife — Uw Volgende Bestemming',
+    };
+    const COVER_SUBTITLES = {
+        es: 'Presentación preparada especialmente para',
+        en: 'Presentation prepared especially for',
+        de: 'Präsentation speziell vorbereitet für',
+        fr: 'Présentation préparée spécialement pour',
+        it: 'Presentazione preparata appositamente per',
+        nl: 'Presentatie speciaal voorbereid voor',
+    };
+    const CLOSING_TITLES = {
+        es: 'Contacto y próximos pasos',
+        en: 'Contact & Next Steps',
+        de: 'Kontakt & Nächste Schritte',
+        fr: 'Contact et prochaines étapes',
+        it: 'Contatto e prossimi passi',
+        nl: 'Contact en vervolgstappen',
+    };
+    const DEFAULT_CLOSING = {
+        es: 'Quedamos a tu disposición para ampliar cualquier información y organizar una visita de familiarización al destino.',
+        en: 'We are at your disposal to provide further information and arrange a familiarisation trip to the destination.',
+        de: 'Wir stehen Ihnen gerne für weitere Informationen und die Organisation einer Kennenlernreise ans Ziel zur Verfügung.',
+        fr: 'Nous sommes à votre disposition pour tout complément d\'information et pour organiser un voyage de familiarisation vers la destination.',
+        it: 'Siamo a vostra disposizione per qualsiasi ulteriore informazione e per organizzare un viaggio di familiarizzazione alla destinazione.',
+        nl: 'Wij staan tot uw beschikking voor nadere informatie en voor het organiseren van een kennismakingsreis naar de bestemming.',
+    };
+
+    // ── REPORTS DATA ──────────────────────────────────────
+    const REPORTS_DATA = [
+        { id:'RPT-2026-0118', name:'Thomas Mueller',   org:'Neckermann Reisen',  country:'🇩🇪', market:'Alemania',      lang:'DE', modules:['🌿','☀️','🏄','🌱'], date:'07 Abr 2026', opens:4,  status:'open' },
+        { id:'RPT-2026-0117', name:'Sophie Beaumont',  org:'Club Med France',    country:'🇫🇷', market:'Francia',       lang:'FR', modules:['🍽️','🎭','🏖️'],      date:'06 Abr 2026', opens:7,  status:'open' },
+        { id:'RPT-2026-0116', name:'James Wilson',     org:'TUI Group UK',       country:'🇬🇧', market:'Reino Unido',   lang:'EN', modules:['🌿','🏄','🏖️','✈️'], date:'05 Abr 2026', opens:2,  status:'pending' },
+        { id:'RPT-2026-0115', name:'Lars Vandenberg',  org:'D-reizen Benelux',   country:'🇳🇱', market:'Países Bajos',  lang:'NL', modules:['☀️','🌱','🏨'],      date:'04 Abr 2026', opens:0,  status:'unseen' },
+        { id:'RPT-2026-0114', name:'Marco Rossi',      org:'Alpitour World',     country:'🇮🇹', market:'Italia',        lang:'IT', modules:['🍽️','🌿','🎭','☀️'], date:'03 Abr 2026', opens:11, status:'open' },
+        { id:'RPT-2026-0113', name:'Anna Lindqvist',   org:'Ving Sverige',       country:'🇸🇪', market:'Suecia',        lang:'EN', modules:['🏄','🌱','✈️'],      date:'01 Abr 2026', opens:3,  status:'open' },
+        { id:'RPT-2026-0112', name:'Hans Becker',      org:'DERTOUR GmbH',       country:'🇩🇪', market:'Alemania',      lang:'DE', modules:['🌿','🏖️','🏨','🎪'], date:'29 Mar 2026', opens:6,  status:'open' },
+        { id:'RPT-2026-0111', name:'Claire Dubois',    org:'Nouvelles Frontières',country:'🇫🇷',market:'Francia',       lang:'FR', modules:['🍽️','🎭','🌱','☀️'], date:'27 Mar 2026', opens:9,  status:'open' },
+    ];
+
+    // ── RENDER MODULE GRID ────────────────────────────────
+    function renderModuleGrid() {
+        const grid = document.getElementById('module-grid');
+        if (!grid) return;
+        grid.innerHTML = MODULES.map(m => {
+            const active = selectedModules.includes(m.id);
+            return `
+            <div id="mc-${m.id}"
+                 onclick="toggleModule('${m.id}')"
+                 class="relative rounded-md border-2 p-4 cursor-pointer select-none transition-all duration-150
+                        ${active ? 'border-brand bg-brand/5' : 'border-gray-100 bg-white hover:border-gray-300'}">
+                <!-- Checkbox -->
+                <div class="absolute top-3 right-3 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all
+                            ${active ? 'border-brand bg-brand' : 'border-gray-300'}">
+                    ${active ? `<svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>` : ''}
+                </div>
+                <div class="text-2xl mb-2">${m.icon}</div>
+                <div class="font-semibold text-gray-900 text-[12px] leading-snug mb-1">${m.title}</div>
+                <div class="text-[#515152] text-[11px] leading-relaxed">${m.desc}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function toggleModule(id) {
+        if (selectedModules.includes(id)) {
+            selectedModules = selectedModules.filter(x => x !== id);
+        } else {
+            selectedModules.push(id);
+        }
+        renderModuleGrid();
+        document.getElementById('sel-count').textContent = selectedModules.length;
+        document.getElementById('btn-step1-next').disabled = selectedModules.length === 0;
+    }
+
+    function updateStepIndicator(active) {
+        [1, 2, 3].forEach(i => {
+            const num = document.getElementById(`si-${i}-num`);
+            const lbl = document.getElementById(`si-${i}-lbl`);
+            if (!num) return;
+            if (i < active) {
+                num.className = 'w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold bg-green-500 text-white';
+                num.innerHTML = `<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
+                lbl.className = 'text-[13px] font-medium text-gray-500';
+            } else if (i === active) {
+                num.className = 'w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold bg-brand text-white';
+                num.textContent = i;
+                lbl.className = 'text-[13px] font-semibold text-gray-900';
+            } else {
+                num.className = 'w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold bg-gray-200 text-[#515152]';
+                num.textContent = i;
+                lbl.className = 'text-[13px] font-medium text-[#515152]';
+            }
+        });
+    }
+    // ── FASE 4: Step 2 helpers ────────────────────────────
+    function renderLangButtons() {
+        const el = document.getElementById('lang-btns');
+        if (!el) return;
+        el.innerHTML = Object.entries(LANG_LABELS).map(([code, label]) => `
+            <button onclick="setLang('${code}')"
+                    class="px-3 py-1.5 rounded-lg text-[12px] font-bold border-2 transition-all
+                           ${selectedLang===code ? 'border-brand bg-brand text-white' : 'border-gray-200 text-gray-500 hover:border-gray-300'}">
+                ${label}
+            </button>`).join('');
+    }
+
+    function setLang(code) {
+        selectedLang = code;
+        renderLangButtons();
+        document.getElementById('prev-lang').textContent = `${LANG_LABELS[code]} · ${LANG_NAMES[code]}`;
+    }
+
+    function renderStep2Summary() {
+        const el = document.getElementById('step2-chips');
+        if (!el) return;
+        const mods = MODULES.filter(m => selectedModules.includes(m.id));
+        el.innerHTML = mods.map(m => `
+            <span class="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 text-[11px] font-medium px-2.5 py-1 rounded-full">
+                ${m.icon} ${m.title}
+                <button onclick="toggleModule('${m.id}');renderStep2Summary()" class="text-[#515152] hover:text-gray-700 ml-0.5 leading-none">✕</button>
+            </span>`).join('');
+        const nameEl = document.getElementById('prev-name');
+        const orgEl  = document.getElementById('prev-org');
+        if (nameEl) nameEl.textContent = recipientName || '—';
+        if (orgEl)  orgEl.textContent  = recipientOrg  || 'Empresa no especificada';
+    }
+
+    // ── FASE 5: Generation flow ───────────────────────────
+    const GEN_STEPS = [
+        'Seleccionando módulos de contenido…',
+        'Traduciendo al idioma seleccionado…',
+        'Aplicando argumentarios comerciales…',
+        'Generando portada personalizada…',
+        'Optimizando para visualización web…',
+        '¡Presentación lista!',
+    ];
+
+    function generateReport() {
+        // Validate
+        recipientName = document.getElementById('inp-name').value.trim() || 'Receptor';
+        recipientOrg  = document.getElementById('inp-org').value.trim()  || 'Organización';
+        closingNote   = document.getElementById('inp-closing').value.trim();
+        reportId      = 'RPT-2026-' + String(Math.floor(Math.random()*9000)+1000);
+
+        goToStep(3);
+        document.getElementById('gen-loading').style.display = 'block';
+        document.getElementById('gen-done').classList.add('hidden');
+
+        let step = 0;
+        const bar  = document.getElementById('gen-progress-bar');
+        const txt  = document.getElementById('gen-status-text');
+        const pct  = [0, 20, 40, 60, 80, 95, 100];
+
+        const iv = setInterval(() => {
+            if (step < GEN_STEPS.length) {
+                txt.textContent = GEN_STEPS[step];
+                bar.style.width = pct[step + 1] + '%';
+                step++;
+            } else {
+                clearInterval(iv);
+                bar.style.width = '100%';
+                setTimeout(() => {
+                    document.getElementById('gen-loading').style.display = 'none';
+                    showGenDone();
+                }, 300);
+            }
+        }, 340);
+    }
+
+    function showGenDone() {
+        const mods = MODULES.filter(m => selectedModules.includes(m.id));
+        const lang = selectedLang;
+        const now  = new Date();
+        const dateStr = now.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+
+        // IDs
+        document.getElementById('done-id').textContent     = reportId;
+        document.getElementById('done-id-url').textContent = reportId;
+
+        // Metadata row
+        document.getElementById('done-recipient').textContent = recipientName || '—';
+        document.getElementById('done-org').textContent       = recipientOrg  || '—';
+        document.getElementById('done-date').textContent      = dateStr;
+        document.getElementById('done-lang-badge').textContent = `${LANG_LABELS[lang]} · ${LANG_NAMES[lang]}`;
+
+        // Avatar initials
+        const initials = (recipientName || 'RR').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+        document.getElementById('done-avatar').textContent = initials;
+
+        // Module tags
+        document.getElementById('done-tags').innerHTML =
+            mods.map(m => `<span class="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full font-medium">${m.icon} ${m.title}</span>`).join('');
+
+        // ── Cover thumbnail ──
+        document.getElementById('thumb-subtitle').textContent = COVER_SUBTITLES[lang];
+        document.getElementById('thumb-title').textContent    = COVER_TITLES[lang];
+        document.getElementById('thumb-name').textContent     = recipientName || 'Estimado receptor';
+        document.getElementById('thumb-org').textContent      = recipientOrg  || '';
+        document.getElementById('thumb-chips').innerHTML      =
+            mods.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);">${m.icon} ${m.title}</span>`).join('');
+
+        document.getElementById('gen-done').classList.remove('hidden');
+    }
+
+    function copyReportUrl() {
+        const url = `https://reports.turismotenerife.com/r/${reportId}`;
+        navigator.clipboard?.writeText(url).catch(()=>{});
+        const btn = event.currentTarget;
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Copiado';
+        setTimeout(() => { btn.innerHTML = orig; }, 1800);
+    }
+
+    // ── FASE 6: Report preview overlay ───────────────────
+    function openReportPreview() {
+        const overlay = document.getElementById('report-preview');
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        const content = document.getElementById('report-content');
+        content.innerHTML = buildReportHTML();
+        document.getElementById('rp-title').textContent =
+            (recipientName || 'Presentación') + ' · ' + LANG_LABELS[selectedLang];
+    }
+
+    function closeReportPreview() {
+        document.getElementById('report-preview').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function buildReportHTML() {
+        const mods = MODULES.filter(m => selectedModules.includes(m.id));
+        const lang = selectedLang;
+        const name = recipientName || 'Estimado receptor';
+        const org  = recipientOrg  || '';
+        const closing = closingNote || DEFAULT_CLOSING[lang];
+
+        // ── Shared styles ──
+        const S = `width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;flex-shrink:0;display:block;`;
+        const smallLogo = `<img src="https://www.webtenerife.com/-/media/project/webtenerife/common/logos_tenerife/tenerife_logo_degradado_esp.svg" style="height:28px;width:auto;filter:brightness(0) invert(1);display:block;">`;
+        const wave = `<svg width="38" height="9" viewBox="0 0 38 9" fill="none"><path d="M0 4.5 Q4.75 0 9.5 4.5 Q14.25 9 19 4.5 Q23.75 0 28.5 4.5 Q33.25 9 38 4.5" stroke="#0071ce" stroke-width="1.6" fill="none"/></svg>`;
+
+        let html = `<div style="font-family:'Lato',Helvetica,Arial,sans-serif;width:100%;">
+
+        <!-- ══ COVER SLIDE ══ -->
+        <div style="${S}background:linear-gradient(160deg,#000b8c 0%,#0071ce 52%,#00a8e8 100%);">
+            <div style="position:absolute;top:-10%;right:-8%;width:55%;height:110%;border-radius:50%;background:rgba(255,255,255,0.03);pointer-events:none;"></div>
+            <div style="position:absolute;bottom:-20%;left:-6%;width:50%;height:100%;border-radius:50%;background:rgba(0,0,0,0.1);pointer-events:none;"></div>
+            <div style="position:absolute;top:50%;right:4%;transform:translateY(-50%);font-size:18vw;font-weight:900;color:rgba(255,255,255,0.025);line-height:1;pointer-events:none;letter-spacing:-0.05em;">TDT</div>
+
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5.5% 7%;">
+                <!-- Logo -->
+                <div>
+                    <img src="https://www.webtenerife.com/-/media/project/webtenerife/common/logos_tenerife/tenerife_logo_degradado_esp.svg"
+                         style="width:46%;max-width:420px;height:auto;display:block;filter:brightness(0) invert(1);">
+                    <div style="height:1px;background:rgba(255,255,255,0.12);margin-top:3.5%;"></div>
+                </div>
+                <!-- Recipient + title -->
+                <div>
+                    <div style="color:#fff;font-size:clamp(20px,3.2vw,48px);font-weight:900;line-height:1.08;letter-spacing:-0.4px;margin-bottom:1.8%;">${COVER_TITLES[lang]}</div>
+                    <div style="height:4px;width:44px;background:rgba(255,255,255,0.32);border-radius:2px;margin-bottom:2%;"></div>
+                    <div style="color:rgba(255,255,255,0.38);font-size:clamp(9px,0.75vw,12px);font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.8%;">${COVER_SUBTITLES[lang]}</div>
+                    <div style="color:#fff;font-size:clamp(13px,1.6vw,22px);font-weight:700;">${name}</div>
+                    ${org ? `<div style="color:rgba(255,255,255,0.45);font-size:clamp(10px,0.9vw,13px);margin-top:0.5%;">${org}</div>` : ''}
+                </div>
+                <!-- Module chips -->
+                <div>
+                    <div style="color:rgba(255,255,255,0.2);font-size:clamp(8px,0.7vw,10px);font-weight:700;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1.2%;">Contenidos de esta presentación</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                        ${mods.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:4px 11px;font-size:clamp(9px,0.85vw,12px);font-weight:700;color:rgba(255,255,255,0.8);">${m.icon} ${m.title}</span>`).join('')}
+                    </div>
+                    <div style="margin-top:2.5%;color:rgba(255,255,255,0.14);font-size:clamp(8px,0.7vw,10px);">${reportId || 'TDT-2026'} &nbsp;·&nbsp; TDT Smart Reports &nbsp;·&nbsp; turismotenerife.com</div>
+                </div>
+            </div>
+        </div>`;
+
+        // ── MODULE SLIDES ──
+        mods.forEach((m, idx) => {
+            const text = m.content?.[lang] || m.content?.es || m.desc;
+            const bg   = idx % 2 === 0 ? '#ffffff' : '#f9f6f6';
+
+            // Section divider slide (full-bleed, only for modules with image)
+            if (m.image) {
+                const coverImg = m.imageCover || m.image;
+                html += `
+        <div style="${S}">
+            <img src="${coverImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">
+            <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.08) 0%,rgba(0,11,120,0.6) 100%);"></div>
+            <div style="position:absolute;top:5%;left:5%;">${smallLogo}</div>
+            <div style="position:absolute;bottom:9%;left:6%;right:38%;">
+                <div style="color:rgba(255,255,255,0.55);font-size:clamp(8px,0.75vw,11px);font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1.5%;">Novedades en Tenerife</div>
+                <div style="color:#fff;font-size:clamp(22px,3.8vw,58px);font-weight:900;line-height:1.05;letter-spacing:-0.4px;">${m.title}</div>
+            </div>
+        </div>`;
+            }
+
+            // Content slide: text left + photos right
+            const photoRight = m.image ? `
+                <div style="position:absolute;inset:0;display:grid;grid-template-rows:${m.image2 ? '1fr 1fr' : '1fr'};gap:3px;">
+                    <div style="overflow:hidden;"><img src="${m.image}" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+                    ${m.image2 ? `<div style="overflow:hidden;"><img src="${m.image2}" style="width:100%;height:100%;object-fit:cover;display:block;"></div>` : ''}
+                </div>` : `
+                <div style="position:absolute;inset:0;background:${m.color};display:flex;align-items:center;justify-content:center;">
+                    <span style="font-size:6vw;opacity:0.4;">${m.icon}</span>
+                </div>`;
+
+            html += `
+        <div style="${S}background:${bg};">
+            <div style="position:absolute;inset:0;display:grid;grid-template-columns:58% 42%;">
+
+                <!-- LEFT: Content -->
+                <div style="padding:5% 6% 5% 7%;display:flex;flex-direction:column;justify-content:center;overflow:hidden;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:2.5%;">
+                        ${wave}
+                        <span style="color:#0071ce;font-size:clamp(7px,0.7vw,10px);font-weight:700;letter-spacing:0.18em;text-transform:uppercase;">Novedades en Tenerife</span>
+                    </div>
+                    <div style="color:#0071ce;font-size:clamp(16px,2.2vw,32px);font-weight:900;line-height:1.15;margin-bottom:2.5%;letter-spacing:-0.2px;">${m.title}</div>
+                    <p style="color:#374151;font-size:14px;line-height:1.75;margin:0 0 3% 0;flex-shrink:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;">${text}</p>
+                    <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">
+                        ${m.highlights.slice(0,3).map(h => `
+                        <div style="display:flex;align-items:flex-start;gap:8px;">
+                            <span style="color:#0071ce;font-weight:900;font-size:clamp(10px,0.9vw,13px);flex-shrink:0;line-height:1.5;">→</span>
+                            <span style="color:#515152;font-size:13px;line-height:1.5;font-weight:600;">${h}</span>
+                        </div>`).join('')}
+                    </div>
+                </div>
+
+                <!-- RIGHT: Photo(s) -->
+                <div style="position:relative;overflow:hidden;">
+                    ${photoRight}
+                </div>
+            </div>
+        </div>`;
+        });
+
+        // ── CLOSING SLIDE ──
+        html += `
+        <div style="${S}background:linear-gradient(135deg,#000b8c,#001a4f);">
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6%;text-align:center;">
+                <div style="color:#0071ce;font-size:clamp(8px,0.7vw,10px);font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:2%;">Turismo de Tenerife</div>
+                <div style="color:#fff;font-size:clamp(18px,2.8vw,42px);font-weight:900;letter-spacing:-0.3px;margin-bottom:2%;">${CLOSING_TITLES[lang]}</div>
+                <div style="height:4px;width:44px;background:#0071ce;border-radius:2px;margin:0 auto 2.5%;"></div>
+                <p style="color:rgba(255,255,255,0.5);font-size:clamp(10px,0.95vw,13px);line-height:1.75;max-width:500px;margin:0 auto 4%;">${closing}</p>
+                <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:16px 28px;display:inline-flex;align-items:center;gap:14px;">
+                    <div style="width:38px;height:38px;border-radius:50%;background:#0071ce;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:12px;flex-shrink:0;">ML</div>
+                    <div style="text-align:left;">
+                        <div style="color:#fff;font-weight:700;font-size:clamp(11px,1.1vw,15px);">María López</div>
+                        <div style="color:rgba(255,255,255,0.4);font-size:clamp(9px,0.8vw,11px);margin-top:2px;">Gestora de Mercados Internacionales</div>
+                        <div style="color:rgba(255,255,255,0.4);font-size:clamp(8px,0.75vw,10px);margin-top:5px;">📧 m.lopez@turismotenerife.com &nbsp;·&nbsp; 📞 +34 922 239 600 &nbsp;·&nbsp; 🌐 turismotenerife.com</div>
+                    </div>
+                </div>
+                <div style="margin-top:3%;color:rgba(255,255,255,0.12);font-size:clamp(8px,0.7vw,9px);">${reportId || 'TDT-SMART-REPORTS'} &nbsp;·&nbsp; Tenerife, Islas Canarias, España</div>
+            </div>
+        </div>
+
+        </div>`;
+
+        return html;
+    }
+
+    // ── FASE 7A: Reports table ────────────────────────────
+    function renderReportsTable(data) {
+        const tbody = document.getElementById('reports-tbody');
+        if (!tbody) return;
+        const statusMap = {
+            open:    '<span class="text-[11px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">● Abierto</span>',
+            pending: '<span class="text-[11px] font-medium text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full">● Pendiente</span>',
+            unseen:  '<span class="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">● Sin abrir</span>',
+        };
+        tbody.innerHTML = data.map(r => `
+            <tr class="hover:bg-gray-50/60 transition-colors">
+                <td class="px-5 py-3.5 text-[11px] font-mono text-[#515152]">${r.id}</td>
+                <td class="px-4 py-3.5">
+                    <div class="text-[13px] font-semibold text-gray-900">${r.name}</div>
+                    <div class="text-[11px] text-[#515152]">${r.org} · ${r.country} ${r.market}</div>
+                </td>
+                <td class="px-4 py-3.5 text-[16px] tracking-wide">${r.modules.join('')}</td>
+                <td class="px-4 py-3.5"><span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${r.lang}</span></td>
+                <td class="px-4 py-3.5 text-[12px] text-gray-500">${r.date}</td>
+                <td class="px-4 py-3.5 text-[13px] font-semibold text-gray-800">${r.opens}</td>
+                <td class="px-4 py-3.5">${statusMap[r.status]}</td>
+                <td class="px-4 py-3.5">
+                    <button onclick="previewExistingReport('${r.id}','${r.name}')"
+                            class="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-[#515152] hover:text-brand hover:border-brand transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </button>
+                </td>
+            </tr>`).join('');
+    }
+
+    function filterReports() {
+        const q      = (document.getElementById('reports-search')?.value || '').toLowerCase();
+        const market = document.getElementById('reports-filter')?.value || '';
+        const filtered = REPORTS_DATA.filter(r =>
+            (!q      || r.name.toLowerCase().includes(q) || r.org.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
+            (!market || r.market === market)
+        );
+        renderReportsTable(filtered);
+    }
+
+    function previewExistingReport(id, name) {
+        // Temporarily set state for the overlay
+        const saved = { name: recipientName, org: recipientOrg, lang: selectedLang, mods: [...selectedModules], id: reportId };
+        const row = REPORTS_DATA.find(r => r.id === id);
+        if (row) {
+            recipientName   = row.name;
+            recipientOrg    = row.org;
+            selectedLang    = row.lang.toLowerCase();
+            selectedModules = MODULES.filter(m => row.modules.includes(m.icon)).map(m => m.id);
+            if (!selectedModules.length) selectedModules = ['naturaleza','clima','gastro'];
+            reportId = id;
+        }
+        openReportPreview();
+        // Restore after overlay open
+        Object.assign({ recipientName, recipientOrg, selectedLang, selectedModules, reportId }, saved);
+    }
+
+    // ── FASE 7B: Catalog ─────────────────────────────────
+    function renderCatalog() {
+        const grid = document.getElementById('catalog-grid');
+        if (!grid) return;
+        const langs = ['ES','EN','DE','FR','IT','NL'];
+        grid.innerHTML = MODULES.map(m => `
+            <div class="bg-white rounded-lg border border-gray-100 p-5 hover:shadow-sm transition-shadow">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="w-12 h-12 rounded-md flex items-center justify-center text-2xl" style="background:${m.color}20;">${m.icon}</div>
+                    <button class="text-[11px] font-semibold text-[#515152] border border-gray-200 px-2.5 py-1 rounded-lg hover:border-brand hover:text-brand transition-colors" title="Próximamente">Editar</button>
+                </div>
+                <h3 class="font-semibold text-gray-900 text-[14px] mb-1">${m.title}</h3>
+                <p class="text-[#515152] text-[12px] mb-4 leading-relaxed">${m.desc}</p>
+                <div class="flex flex-wrap gap-1">
+                    ${langs.map(l => `<span class="text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">${l}</span>`).join('')}
+                </div>
+            </div>`).join('');
+    }
+
+    // ── Navigate: init logic per view ────────────────────
+    const _origGoToStep = goToStep;
+
+    const PAGE_META = {
+        'dashboard':   ['Dashboard',            'Bienvenida, María. Tienes 3 presentaciones pendientes de seguimiento.'],
+        'new-report':  ['Nueva Presentación',     'Crea una presentación personalizada en minutos con ayuda de IA.'],
+        'reports':     ['Presentaciones Generadas', '24 presentaciones en total · 18 abiertas · 6 pendientes'],
+        'catalog':     ['Catálogo de Módulos',   '10 módulos activos · Todos disponibles en 6 idiomas'],
+        'analytics':   ['Métricas e Impacto',    'Seguimiento de aperturas, mercados y rendimiento por módulo'],
+        'settings':    ['Configuración',         'Gestión de usuarios, idiomas y plantillas del sistema'],
+    };
+
+    function navigate(viewId, btn) {
+        document.querySelectorAll('#view-container > section').forEach(s => {
+            s.classList.add('hidden'); s.classList.remove('fade-in');
+        });
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const section = document.getElementById(`view-${viewId}`);
+        if (section) {
+            section.classList.remove('hidden');
+            requestAnimationFrame(() => section.classList.add('fade-in'));
+        }
+        if (btn) btn.classList.add('active');
+        const meta = PAGE_META[viewId] || [viewId, ''];
+        document.getElementById('page-title').textContent    = meta[0];
+        document.getElementById('page-subtitle').textContent = meta[1];
+
+        if (viewId === 'new-report') {
+            selectedModules = []; currentStep = 1;
+            goToStep(1); renderModuleGrid();
+            document.getElementById('sel-count').textContent = '0';
+            document.getElementById('btn-step1-next').disabled = true;
+        }
+        if (viewId === 'reports')  { renderReportsTable(REPORTS_DATA); }
+        if (viewId === 'catalog')  { renderCatalog(); }
+    }
+
+    // Override goToStep to init step-2 UI
+    function goToStep(n) {
+        [1, 2, 3].forEach(i => {
+            const el = document.getElementById(`step-${i}`);
+            if (el) { el.classList.add('hidden'); el.classList.remove('fade-in'); }
+        });
+        const target = document.getElementById(`step-${n}`);
+        if (target) {
+            target.classList.remove('hidden');
+            requestAnimationFrame(() => target.classList.add('fade-in'));
+        }
+        currentStep = n;
+        updateStepIndicator(n);
+        if (n === 2) {
+            renderLangButtons();
+            renderStep2Summary();
+        }
+    }
+
+    // CSS spin animation for generator
+    const styleEl = document.createElement('style');
+    styleEl.textContent = '@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }';
+    document.head.appendChild(styleEl);
+
+</script>
+
+<!-- ════════════════════════════════════════
+     REPORT PREVIEW OVERLAY (Fase 6)
+════════════════════════════════════════ -->
+<div id="report-preview" style="display:none;position:fixed;inset:0;z-index:50;flex-direction:column;background:#1a1a1a;">
+
+    <!-- Toolbar -->
+    <div style="background:#0d1b2a;border-bottom:1px solid rgba(255,255,255,0.08);padding:0 20px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <button onclick="closeReportPreview()"
+                style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.5);font-size:13px;font-weight:500;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background 0.15s;"
+                onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='none'">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            Cerrar
+        </button>
+        <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);"></div>
+        <span style="color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;" id="rp-title">Presentación</span>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+            <button style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:500;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:6px 14px;cursor:pointer;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                Compartir
+            </button>
+            <button style="display:flex;align-items:center;gap:6px;color:#fff;font-size:12px;font-weight:600;background:#0071ce;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Descargar PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Scrollable slides -->
+    <div id="report-content" style="flex:1;overflow-y:auto;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 0;">
+    </div>
+</div>
+
+</body>
+</html>
