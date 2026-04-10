@@ -173,8 +173,8 @@
         <div class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-black/[0.05] transition-colors cursor-pointer">
             <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xs flex-shrink-0">ML</div>
             <div class="flex-1 min-w-0">
-                <div class="text-gray-900 text-xs font-semibold truncate">María López</div>
-                <div class="text-black/40 text-[11px] truncate">Gestora de Mercados</div>
+                <div class="text-gray-900 text-xs font-semibold truncate">Dimple Melwani</div>
+                <div class="text-black/40 text-[11px] truncate">Consejera Delegada</div>
             </div>
             <svg class="w-3.5 h-3.5 text-black/25 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -830,7 +830,7 @@
                 <table class="w-full" id="reports-table">
                     <thead>
                         <tr class="bg-gray-50/70">
-                            <th class="text-left px-5 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">ID</th>
+                            <th class="text-left px-5 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Gestor</th>
                             <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Receptor</th>
                             <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Módulos</th>
                             <th class="text-left px-4 py-2.5 text-[10px] font-bold text-[#515152] uppercase tracking-wider">Idioma</th>
@@ -1226,14 +1226,14 @@
 
     // ── REPORTS DATA ──────────────────────────────────────
     const REPORTS_DATA = [
-        { id:'RPT-2026-0118', name:'Thomas Mueller',   org:'Neckermann Reisen',  country:'🇩🇪', market:'Alemania',      lang:'DE', modules:['🌿','☀️','🏄','🌱'], date:'07 Abr 2026', opens:4,  status:'open' },
-        { id:'RPT-2026-0117', name:'Sophie Beaumont',  org:'Club Med France',    country:'🇫🇷', market:'Francia',       lang:'FR', modules:['🍽️','🎭','🏖️'],      date:'06 Abr 2026', opens:7,  status:'open' },
-        { id:'RPT-2026-0116', name:'James Wilson',     org:'TUI Group UK',       country:'🇬🇧', market:'Reino Unido',   lang:'EN', modules:['🌿','🏄','🏖️','✈️'], date:'05 Abr 2026', opens:2,  status:'pending' },
-        { id:'RPT-2026-0115', name:'Lars Vandenberg',  org:'D-reizen Benelux',   country:'🇳🇱', market:'Países Bajos',  lang:'NL', modules:['☀️','🌱','🏨'],      date:'04 Abr 2026', opens:0,  status:'unseen' },
-        { id:'RPT-2026-0114', name:'Marco Rossi',      org:'Alpitour World',     country:'🇮🇹', market:'Italia',        lang:'IT', modules:['🍽️','🌿','🎭','☀️'], date:'03 Abr 2026', opens:11, status:'open' },
-        { id:'RPT-2026-0113', name:'Anna Lindqvist',   org:'Ving Sverige',       country:'🇸🇪', market:'Suecia',        lang:'EN', modules:['🏄','🌱','✈️'],      date:'01 Abr 2026', opens:3,  status:'open' },
-        { id:'RPT-2026-0112', name:'Hans Becker',      org:'DERTOUR GmbH',       country:'🇩🇪', market:'Alemania',      lang:'DE', modules:['🌿','🏖️','🏨','🎪'], date:'29 Mar 2026', opens:6,  status:'open' },
-        { id:'RPT-2026-0111', name:'Claire Dubois',    org:'Nouvelles Frontières',country:'🇫🇷',market:'Francia',       lang:'FR', modules:['🍽️','🎭','🌱','☀️'], date:'27 Mar 2026', opens:9,  status:'open' },
+        { id:'RPT-2026-0118', name:'Thomas Mueller',   org:'Neckermann Reisen',   country:'🇩🇪', market:'Alemania',      lang:'DE', modules:['🌿','☀️','🏄','🌱'], date:'07 Abr 2026', opens:4,  status:'open',    gestor:'Javier Pérez' },
+        { id:'RPT-2026-0117', name:'Sophie Beaumont',  org:'Club Med France',     country:'🇫🇷', market:'Francia',       lang:'FR', modules:['🍽️','🎭','🏖️'],      date:'06 Abr 2026', opens:7,  status:'open',    gestor:'Gema Gijón' },
+        { id:'RPT-2026-0116', name:'James Wilson',     org:'TUI Group UK',        country:'🇬🇧', market:'Reino Unido',   lang:'EN', modules:['🌿','🏄','🏖️','✈️'], date:'05 Abr 2026', opens:2,  status:'pending', gestor:'Cristina González' },
+        { id:'RPT-2026-0115', name:'Lars Vandenberg',  org:'D-reizen Benelux',    country:'🇳🇱', market:'Países Bajos',  lang:'NL', modules:['☀️','🌱','🏨'],      date:'04 Abr 2026', opens:0,  status:'unseen',  gestor:'Sara Bethencourt' },
+        { id:'RPT-2026-0114', name:'Marco Rossi',      org:'Alpitour World',      country:'🇮🇹', market:'Italia',        lang:'IT', modules:['🍽️','🌿','🎭','☀️'], date:'03 Abr 2026', opens:11, status:'open',    gestor:'Javier Pérez' },
+        { id:'RPT-2026-0113', name:'Anna Lindqvist',   org:'Ving Sverige',        country:'🇸🇪', market:'Suecia',        lang:'EN', modules:['🏄','🌱','✈️'],      date:'01 Abr 2026', opens:3,  status:'open',    gestor:'Cristina González' },
+        { id:'RPT-2026-0112', name:'Hans Becker',      org:'DERTOUR GmbH',        country:'🇩🇪', market:'Alemania',      lang:'DE', modules:['🌿','🏖️','🏨','🎪'], date:'29 Mar 2026', opens:6,  status:'open',    gestor:'Gema Gijón' },
+        { id:'RPT-2026-0111', name:'Claire Dubois',    org:'Nouvelles Frontières', country:'🇫🇷',market:'Francia',       lang:'FR', modules:['🍽️','🎭','🌱','☀️'], date:'27 Mar 2026', opens:9,  status:'open',    gestor:'Sara Bethencourt' },
     ];
 
     // ── RENDER MODULE GRID ────────────────────────────────
@@ -1568,7 +1568,7 @@
         };
         tbody.innerHTML = data.map(r => `
             <tr class="hover:bg-gray-50/60 transition-colors">
-                <td class="px-5 py-3.5 text-[11px] font-mono text-[#515152]">${r.id}</td>
+                <td class="px-5 py-3.5 text-[12px] font-medium text-gray-700">${r.gestor}</td>
                 <td class="px-4 py-3.5">
                     <div class="text-[13px] font-semibold text-gray-900">${r.name}</div>
                     <div class="text-[11px] text-[#515152]">${r.org} · ${r.country} ${r.market}</div>
