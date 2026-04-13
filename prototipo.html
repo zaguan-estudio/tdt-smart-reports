@@ -539,6 +539,21 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email <span class="font-normal normal-case text-[#515152]">(opcional)</span></label>
+                                    <input id="inp-email" type="email" placeholder="ej. t.mueller@neckermann.de"
+                                           oninput="recipientEmail=this.value"
+                                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono <span class="font-normal normal-case text-[#515152]">(opcional)</span></label>
+                                    <input id="inp-phone" type="tel" placeholder="ej. +49 89 123 456"
+                                           oninput="recipientPhone=this.value"
+                                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors">
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Mercado / País</label>
                                 <select id="inp-market" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors bg-white">
@@ -659,6 +674,7 @@
                                     <div id="thumb-subtitle" class="text-white/40 text-[10px] font-bold tracking-widest uppercase mb-1">Presentación preparada para</div>
                                     <div id="thumb-name" class="text-white font-bold text-[16px]">Receptor</div>
                                     <div id="thumb-org" class="text-white/50 text-[12px] mt-1"></div>
+                                    <div id="thumb-contact" class="text-white/35 text-[10px] mt-1 hidden"></div>
                                 </div>
 
                                 <!-- Module chips -->
@@ -721,6 +737,8 @@
                                     <div class="min-w-0">
                                         <div class="text-gray-900 font-semibold text-[13px] truncate" id="done-recipient">—</div>
                                         <div class="text-[#515152] text-[11px] truncate" id="done-org">—</div>
+                                        <div class="text-[#515152] text-[11px] truncate hidden" id="done-email"></div>
+                                        <div class="text-[#515152] text-[11px] truncate hidden" id="done-phone"></div>
                                     </div>
                                 </div>
 
@@ -1335,6 +1353,8 @@
     let currentStep     = 1;
     let recipientName   = '';
     let recipientOrg    = '';
+    let recipientEmail  = '';
+    let recipientPhone  = '';
     let selectedLang    = 'de';
     let closingNote     = '';
     let reportId        = '';
@@ -1497,10 +1517,12 @@
 
     function generateReport() {
         // Validate
-        recipientName = document.getElementById('inp-name').value.trim() || 'Receptor';
-        recipientOrg  = document.getElementById('inp-org').value.trim()  || 'Organización';
-        closingNote   = document.getElementById('inp-closing').value.trim();
-        reportId      = 'RPT-2026-' + String(Math.floor(Math.random()*9000)+1000);
+        recipientName  = document.getElementById('inp-name').value.trim()  || 'Receptor';
+        recipientOrg   = document.getElementById('inp-org').value.trim()   || 'Organización';
+        recipientEmail = document.getElementById('inp-email').value.trim();
+        recipientPhone = document.getElementById('inp-phone').value.trim();
+        closingNote    = document.getElementById('inp-closing').value.trim();
+        reportId       = 'RPT-2026-' + String(Math.floor(Math.random()*9000)+1000);
 
         goToStep(3);
         document.getElementById('gen-loading').style.display = 'block';
@@ -1540,6 +1562,12 @@
         // Metadata row
         document.getElementById('done-recipient').textContent = recipientName || '—';
         document.getElementById('done-org').textContent       = recipientOrg  || '—';
+        const emailEl = document.getElementById('done-email');
+        const phoneEl = document.getElementById('done-phone');
+        emailEl.textContent = recipientEmail ? '✉ ' + recipientEmail : '';
+        emailEl.classList.toggle('hidden', !recipientEmail);
+        phoneEl.textContent = recipientPhone ? '📞 ' + recipientPhone : '';
+        phoneEl.classList.toggle('hidden', !recipientPhone);
         document.getElementById('done-date').textContent      = dateStr;
         document.getElementById('done-lang-badge').textContent = `${LANG_LABELS[lang]} · ${LANG_NAMES[lang]}`;
 
@@ -1556,6 +1584,10 @@
         document.getElementById('thumb-title').textContent    = COVER_TITLES[lang];
         document.getElementById('thumb-name').textContent     = recipientName || 'Estimado receptor';
         document.getElementById('thumb-org').textContent      = recipientOrg  || '';
+        const contactParts = [recipientEmail, recipientPhone].filter(Boolean);
+        const thumbContact = document.getElementById('thumb-contact');
+        thumbContact.textContent = contactParts.join('  ·  ');
+        thumbContact.classList.toggle('hidden', contactParts.length === 0);
         document.getElementById('thumb-chips').innerHTML      =
             mods.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);">${m.icon} ${m.title}</span>`).join('');
 
@@ -1590,8 +1622,10 @@
     function buildReportHTML() {
         const mods = MODULES.filter(m => selectedModules.includes(m.id));
         const lang = selectedLang;
-        const name = recipientName || 'Estimado receptor';
-        const org  = recipientOrg  || '';
+        const name  = recipientName || 'Estimado receptor';
+        const org   = recipientOrg  || '';
+        const email = recipientEmail || '';
+        const phone = recipientPhone || '';
         const closing = closingNote || DEFAULT_CLOSING[lang];
 
         // ── Shared styles ──
@@ -1621,6 +1655,7 @@
                     <div style="color:rgba(255,255,255,0.38);font-size:clamp(9px,0.75vw,12px);font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.8%;">${COVER_SUBTITLES[lang]}</div>
                     <div style="color:#fff;font-size:clamp(13px,1.6vw,22px);font-weight:700;">${name}</div>
                     ${org ? `<div style="color:rgba(255,255,255,0.45);font-size:clamp(10px,0.9vw,13px);margin-top:0.5%;">${org}</div>` : ''}
+                    ${(email || phone) ? `<div style="color:rgba(255,255,255,0.3);font-size:clamp(8px,0.75vw,11px);margin-top:0.8%;display:flex;gap:12px;">${email ? `<span>✉ ${email}</span>` : ''}${phone ? `<span>📞 ${phone}</span>` : ''}</div>` : ''}
                 </div>
                 <!-- Module chips -->
                 <div>
