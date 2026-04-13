@@ -1821,7 +1821,9 @@
             <div class="bg-white rounded-lg border border-gray-100 p-5 hover:shadow-sm transition-shadow">
                 <div class="flex items-start justify-between mb-3">
                     <div class="w-12 h-12 rounded-md flex items-center justify-center text-2xl" style="background:${m.color}20;">${m.icon}</div>
-                    <button class="text-[11px] font-semibold text-[#515152] border border-gray-200 px-2.5 py-1 rounded-lg hover:border-brand hover:text-brand transition-colors" title="Próximamente">Editar</button>
+                    <button onclick="${m.id === 'naturaleza' ? `openModuleEditor('${m.id}')` : ''}"
+                            class="text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors ${m.id === 'naturaleza' ? 'text-brand border border-brand hover:bg-brand hover:text-white cursor-pointer' : 'text-gray-300 border border-gray-200 cursor-not-allowed'}"
+                            ${m.id !== 'naturaleza' ? 'title="Próximamente" disabled' : ''}>Editar</button>
                 </div>
                 <h3 class="font-semibold text-gray-900 text-[14px] mb-1">${m.title}</h3>
                 <p class="text-[#515152] text-[12px] mb-4 leading-relaxed">${m.desc}</p>
@@ -1895,6 +1897,153 @@
         'settings':    ['Configuración',         'Gestión de usuarios, idiomas y plantillas del sistema'],
         'plantillas':  ['Plantillas',            '6 plantillas activas · Base para nuevas presentaciones'],
     };
+
+    // ── MODULE EDITOR ─────────────────────────────────────
+    const SUBMODULES = {
+        naturaleza: [
+            { id:'teide',      title:'Teide y Parque Nacional', icon:'🌋', desc:'El volcán más alto de España · UNESCO',      defaultImg:'https://www.webtenerife.com/-/media/files/galeria-multimedia/folletos/sliders/organizar-experiencia-volcanica-sb.jpg?w=1920&hash=E519938C783089A21EBD0F2736AA8E8B' },
+            { id:'anaga',      title:'Parque Rural de Anaga',   icon:'🌿', desc:'Reserva de la Biosfera · laurisilva milenaria', defaultImg:'' },
+            { id:'laurisilva', title:'Laurisilva y Bosques',    icon:'🌳', desc:'Corona Forestal · bosque atlántico único',     defaultImg:'' },
+            { id:'costas',     title:'Costa y Acantilados',     icon:'🪨', desc:'Los Gigantes · Punta de Teno · paisaje volcánico', defaultImg:'' },
+        ]
+    };
+
+    const naturalezaBaseText = 'Tenerife alberga el Teide, el volcán más alto de España y tercero del mundo sobre su base oceánica, declarado Patrimonio de la Humanidad por la UNESCO. Sus ecosistemas únicos, desde la laurisilva milenaria del Parque Rural de Anaga hasta los paisajes volcánicos del Parque Nacional del Teide, concentran una biodiversidad excepcional. Con más de 80.000 hectáreas de espacios naturales protegidos, Tenerife es uno de los destinos de naturaleza más completos del Atlántico.';
+
+    let moduleEdits = {}; // { [moduleId]: { [subId]: { texto, imagen, video } } }
+    let activeModuleId  = null;
+    let activeSubId     = null;
+    let activeEditorTab = 'texto';
+
+    function openModuleEditor(moduleId) {
+        const module = MODULES.find(m => m.id === moduleId);
+        if (!module) return;
+        activeModuleId = moduleId;
+        if (!moduleEdits[moduleId]) moduleEdits[moduleId] = {};
+
+        const overlay = document.getElementById('module-editor');
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        // Header
+        document.getElementById('me-module-icon').textContent  = module.icon;
+        document.getElementById('me-module-title').textContent = module.title;
+
+        // Sub-module list
+        const subs = SUBMODULES[moduleId] || [];
+        document.getElementById('me-sublist').innerHTML = subs.map(s => `
+            <button id="me-sub-${s.id}" onclick="selectSubmodule('${s.id}')"
+                    class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 mb-1 transition-colors hover:bg-white border border-transparent">
+                <span class="text-xl flex-shrink-0">${s.icon}</span>
+                <div class="min-w-0">
+                    <div class="text-[13px] font-semibold text-gray-800 truncate">${s.title}</div>
+                    <div class="text-[11px] text-[#515152] truncate">${s.desc}</div>
+                </div>
+            </button>`).join('');
+
+        // Init edits for each sub
+        subs.forEach(s => {
+            if (!moduleEdits[moduleId][s.id]) {
+                moduleEdits[moduleId][s.id] = {
+                    texto: s.id === 'teide' ? naturalezaBaseText : '',
+                    imagen: s.defaultImg || '',
+                    video: ''
+                };
+            }
+        });
+
+        // Select first
+        if (subs.length) selectSubmodule(subs[0].id);
+    }
+
+    function closeModuleEditor() {
+        document.getElementById('module-editor').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function selectSubmodule(subId) {
+        activeSubId = subId;
+        activeEditorTab = 'texto';
+        const subs = SUBMODULES[activeModuleId] || [];
+        const sub  = subs.find(s => s.id === subId);
+        if (!sub) return;
+
+        // Highlight active
+        subs.forEach(s => {
+            const btn = document.getElementById(`me-sub-${s.id}`);
+            if (btn) btn.className = `w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 mb-1 transition-colors border ${s.id === subId ? 'bg-white border-gray-200 shadow-sm' : 'border-transparent hover:bg-white'}`;
+        });
+
+        // Panel header
+        document.getElementById('me-panel-icon').textContent  = sub.icon;
+        document.getElementById('me-panel-title').textContent = sub.title;
+        document.getElementById('me-panel-desc').textContent  = sub.desc;
+
+        switchEditorTab('texto');
+    }
+
+    function switchEditorTab(tab) {
+        activeEditorTab = tab;
+        const edits = moduleEdits[activeModuleId]?.[activeSubId] || { texto:'', imagen:'', video:'' };
+
+        ['texto','imagen','video'].forEach(t => {
+            const btn = document.getElementById(`me-tab-${t}`);
+            if (btn) btn.className = `px-4 py-2.5 text-[12px] font-bold rounded-t-lg border-b-2 transition-colors ${t === tab ? 'border-brand text-brand bg-brand/5' : 'border-transparent text-[#515152] hover:text-gray-700'}`;
+            const panel = document.getElementById(`me-panel-${t}`);
+            if (panel) panel.classList.toggle('hidden', t !== tab);
+        });
+
+        // Populate content
+        if (tab === 'texto') {
+            document.getElementById('me-texto-input').value = edits.texto;
+        } else if (tab === 'imagen') {
+            document.getElementById('me-imagen-url').value = edits.imagen;
+            updateImagePreview(edits.imagen);
+        } else if (tab === 'video') {
+            document.getElementById('me-video-url').value = edits.video;
+            updateVideoPreview(edits.video);
+        }
+    }
+
+    function saveEditorField() {
+        if (!activeModuleId || !activeSubId) return;
+        if (!moduleEdits[activeModuleId]) moduleEdits[activeModuleId] = {};
+        if (!moduleEdits[activeModuleId][activeSubId]) moduleEdits[activeModuleId][activeSubId] = { texto:'', imagen:'', video:'' };
+        if (activeEditorTab === 'texto')  moduleEdits[activeModuleId][activeSubId].texto  = document.getElementById('me-texto-input').value;
+        if (activeEditorTab === 'imagen') moduleEdits[activeModuleId][activeSubId].imagen = document.getElementById('me-imagen-url').value;
+        if (activeEditorTab === 'video')  moduleEdits[activeModuleId][activeSubId].video  = document.getElementById('me-video-url').value;
+    }
+
+    function updateImagePreview(url) {
+        const prev = document.getElementById('me-imagen-preview');
+        if (url) {
+            prev.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span class=text-[12px] text-gray-400>No se puede cargar la imagen</span>'" class="w-full h-full object-cover rounded-lg">`;
+        } else {
+            prev.innerHTML = `<div class="flex flex-col items-center gap-2 text-gray-300"><svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[12px]">Introduce una URL de imagen</span></div>`;
+        }
+    }
+
+    function updateVideoPreview(url) {
+        const prev = document.getElementById('me-video-preview');
+        if (!url) { prev.innerHTML = `<div class="flex flex-col items-center gap-2 text-gray-300"><svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="text-[12px]">Introduce una URL de YouTube o Vimeo</span></div>`; return; }
+        const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
+        if (ytMatch) {
+            prev.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" class="w-full h-full rounded-lg" frameborder="0" allowfullscreen></iframe>`;
+        } else {
+            prev.innerHTML = `<div class="text-[12px] text-gray-400 text-center">Vista previa no disponible para esta URL</div>`;
+        }
+    }
+
+    function saveModuleChanges() {
+        saveEditorField();
+        const toast = document.getElementById('me-toast');
+        toast.classList.remove('opacity-0', 'translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-2');
+        }, 2500);
+    }
 
     function navigate(viewId, btn) {
         document.querySelectorAll('#view-container > section').forEach(s => {
@@ -1977,6 +2126,139 @@
 
     <!-- Scrollable slides -->
     <div id="report-content" style="flex:1;overflow-y:auto;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 0;">
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODULE EDITOR OVERLAY
+════════════════════════════════════════ -->
+<div id="module-editor" style="display:none;position:fixed;inset:0;z-index:60;flex-direction:column;background:#f5f5f5;">
+
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center gap-4 flex-shrink-0 shadow-sm">
+        <button onclick="closeModuleEditor()"
+                class="flex items-center gap-1.5 text-[#515152] hover:text-brand text-[13px] font-medium transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Catálogo
+        </button>
+        <div class="w-px h-5 bg-gray-200"></div>
+        <span id="me-module-icon" class="text-xl">🌿</span>
+        <span id="me-module-title" class="font-bold text-gray-900 text-[15px]">Naturaleza y Paisaje</span>
+        <span class="text-[11px] font-semibold bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full">Activo</span>
+        <div class="ml-auto flex items-center gap-3">
+            <!-- Toast -->
+            <div id="me-toast" class="opacity-0 translate-y-2 transition-all duration-300 flex items-center gap-1.5 text-[12px] font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Cambios guardados
+            </div>
+            <button onclick="saveModuleChanges()"
+                    class="flex items-center gap-2 bg-brand hover:bg-brand-dark text-white px-5 py-2 rounded-full text-[12px] font-bold uppercase tracking-wide transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Guardar cambios
+            </button>
+        </div>
+    </div>
+
+    <!-- Body -->
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- Left: sub-module list -->
+        <div class="w-64 flex-shrink-0 bg-gray-50 border-r border-gray-200 flex flex-col overflow-y-auto">
+            <div class="px-4 pt-5 pb-2">
+                <p class="text-[10px] font-bold text-[#515152] uppercase tracking-widest mb-3">Sub-módulos</p>
+                <div id="me-sublist"></div>
+            </div>
+            <!-- Info footer -->
+            <div class="mt-auto px-4 py-4 border-t border-gray-200">
+                <p class="text-[11px] text-[#515152] leading-relaxed">Cada sub-módulo puede tener su propio texto, imagen y vídeo que se usarán al generar la presentación.</p>
+            </div>
+        </div>
+
+        <!-- Right: editor panel -->
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-3xl mx-auto">
+
+                <!-- Sub-module header -->
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-xl shadow-sm">
+                        <span id="me-panel-icon">🌋</span>
+                    </div>
+                    <div>
+                        <h2 id="me-panel-title" class="font-bold text-gray-900 text-[16px]">Teide y Parque Nacional</h2>
+                        <p id="me-panel-desc" class="text-[#515152] text-[12px]">El volcán más alto de España · UNESCO</p>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex gap-0 border-b border-gray-200 mb-6">
+                    <button id="me-tab-texto"  onclick="saveEditorField();switchEditorTab('texto')"
+                            class="px-4 py-2.5 text-[12px] font-bold rounded-t-lg border-b-2 transition-colors border-brand text-brand bg-brand/5">
+                        ✏️ Texto
+                    </button>
+                    <button id="me-tab-imagen" onclick="saveEditorField();switchEditorTab('imagen')"
+                            class="px-4 py-2.5 text-[12px] font-bold rounded-t-lg border-b-2 transition-colors border-transparent text-[#515152] hover:text-gray-700">
+                        🖼️ Imagen
+                    </button>
+                    <button id="me-tab-video"  onclick="saveEditorField();switchEditorTab('video')"
+                            class="px-4 py-2.5 text-[12px] font-bold rounded-t-lg border-b-2 transition-colors border-transparent text-[#515152] hover:text-gray-700">
+                        🎬 Vídeo
+                    </button>
+                </div>
+
+                <!-- Tab: Texto -->
+                <div id="me-panel-texto">
+                    <label class="block text-[11px] font-bold text-[#515152] uppercase tracking-wider mb-2">Contenido de texto <span class="font-normal normal-case">(versión ES · base para traducciones)</span></label>
+                    <textarea id="me-texto-input" rows="9"
+                              oninput="saveEditorField()"
+                              placeholder="Escribe aquí el contenido descriptivo de este sub-módulo..."
+                              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors resize-none bg-white shadow-sm"></textarea>
+                    <p class="text-[11px] text-gray-400 mt-2">Este texto aparecerá en la diapositiva de contenido de la presentación.</p>
+                </div>
+
+                <!-- Tab: Imagen -->
+                <div id="me-panel-imagen" class="hidden">
+                    <label class="block text-[11px] font-bold text-[#515152] uppercase tracking-wider mb-2">URL de imagen</label>
+                    <div class="flex gap-3 mb-4">
+                        <input id="me-imagen-url" type="url" placeholder="https://ejemplo.com/imagen.jpg"
+                               oninput="saveEditorField();updateImagePreview(this.value)"
+                               class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors bg-white shadow-sm">
+                        <button onclick="updateImagePreview(document.getElementById('me-imagen-url').value)"
+                                class="px-4 py-2.5 border border-gray-200 rounded-xl text-[12px] font-semibold text-[#515152] hover:border-brand hover:text-brand transition-colors bg-white">
+                            Cargar
+                        </button>
+                    </div>
+                    <div id="me-imagen-preview" class="w-full h-56 bg-white border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
+                        <div class="flex flex-col items-center gap-2 text-gray-300">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span class="text-[12px]">Introduce una URL de imagen</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-2">Se usará como imagen de la diapositiva de contenido de este sub-módulo.</p>
+                </div>
+
+                <!-- Tab: Vídeo -->
+                <div id="me-panel-video" class="hidden">
+                    <label class="block text-[11px] font-bold text-[#515152] uppercase tracking-wider mb-2">URL de vídeo <span class="font-normal normal-case">(YouTube o Vimeo)</span></label>
+                    <div class="flex gap-3 mb-4">
+                        <input id="me-video-url" type="url" placeholder="https://www.youtube.com/watch?v=..."
+                               oninput="saveEditorField();updateVideoPreview(this.value)"
+                               class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors bg-white shadow-sm">
+                        <button onclick="updateVideoPreview(document.getElementById('me-video-url').value)"
+                                class="px-4 py-2.5 border border-gray-200 rounded-xl text-[12px] font-semibold text-[#515152] hover:border-brand hover:text-brand transition-colors bg-white">
+                            Cargar
+                        </button>
+                    </div>
+                    <div id="me-video-preview" class="w-full h-56 bg-white border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
+                        <div class="flex flex-col items-center gap-2 text-gray-300">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="text-[12px]">Introduce una URL de YouTube o Vimeo</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-2">El vídeo se mostrará en la diapositiva de presentación interactiva.</p>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
 
